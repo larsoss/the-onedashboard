@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { Settings } from 'lucide-react'
 import { useHA } from '@/hooks/useHAClient'
 import { cn } from '@/lib/utils'
 import type { ConnectionStatus } from '@/types/ha-types'
