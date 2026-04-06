@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.15] - 2026-04-06
+
+- chore: update changelog for v1.0.14
+
 ## [1.0.14] - 2026-04-06
 
 - feat: color picker for lights + tile edit mode
