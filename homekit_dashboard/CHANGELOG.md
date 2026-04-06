@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.35] - 2026-04-06
+
+- feat: per-user settings with cross-device sync + drag fix + heart button
+
 ## [1.0.34] - 2026-04-06
 
 - chore: update changelog
