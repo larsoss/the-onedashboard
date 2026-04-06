@@ -13,7 +13,7 @@ interface RoomTabsProps {
 }
 
 export function RoomTabs({ activeTab, onTabChange }: RoomTabsProps) {
-  const { haAreas, customAreas, entities, entityRegistry, entityAreaOverrides } = useHA()
+  const { haAreas, customAreas, entities, resolveEntityArea } = useHA()
 
   // Only show area tabs that actually have entities assigned
   const areaTabs = useMemo(() => {
@@ -25,12 +25,10 @@ export function RoomTabs({ activeTab, onTabChange }: RoomTabsProps) {
     return allAreas.filter((area) =>
       Object.keys(entities).some((eid) => {
         if (!TILE_DOMAINS.has(getDomain(eid))) return false
-        const override = entityAreaOverrides[eid]
-        if (override !== undefined) return override === area.area_id
-        return (entityRegistry[eid]?.area_id ?? null) === area.area_id
+        return resolveEntityArea(eid) === area.area_id
       })
     )
-  }, [haAreas, customAreas, entities, entityRegistry, entityAreaOverrides])
+  }, [haAreas, customAreas, entities, resolveEntityArea])
 
   return (
     <Tabs value={activeTab} onValueChange={onTabChange}>

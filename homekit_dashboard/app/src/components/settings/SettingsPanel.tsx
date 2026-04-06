@@ -194,8 +194,8 @@ export function SettingsPanel({ onClose }: Props) {
     haAreas,
     customAreas,
     entities,
-    entityRegistry,
     entityAreaOverrides,
+    resolveEntityArea,
     saveEntityAreaOverrides,
     updateCustomAreas,
   } = useHA()
@@ -203,18 +203,14 @@ export function SettingsPanel({ onClose }: Props) {
   const [editingArea, setEditingArea] = useState<{ id: string; name: string } | null>(null)
   const [showNewArea, setShowNewArea] = useState(false)
 
-  // Build the combined effective area map: override → entity registry default
+  // Build the effective area map using the resolver (override → entity → device)
   const effectiveEntityArea = useMemo<Record<string, string | null>>(() => {
     const map: Record<string, string | null> = {}
-    Object.values(entities).forEach((e) => {
-      if (entityAreaOverrides[e.entity_id] !== undefined) {
-        map[e.entity_id] = entityAreaOverrides[e.entity_id]
-      } else {
-        map[e.entity_id] = entityRegistry[e.entity_id]?.area_id ?? null
-      }
+    Object.keys(entities).forEach((eid) => {
+      map[eid] = resolveEntityArea(eid)
     })
     return map
-  }, [entities, entityRegistry, entityAreaOverrides])
+  }, [entities, resolveEntityArea])
 
   // All areas (HA + custom)
   const allAreas = useMemo(() => [

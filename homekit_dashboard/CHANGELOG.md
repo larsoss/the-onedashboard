@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.5] - 2026-04-06
+
+- Sync CHANGELOG.md staged by commit-msg hook
+
 ## [1.0.4] - 2026-04-06
 
 - Add CHANGELOG.md and auto-update hook on every commit

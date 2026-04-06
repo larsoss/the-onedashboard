@@ -5,7 +5,16 @@ const http = require('http');
 const path = require('path');
 const { WebSocket, WebSocketServer } = require('ws');
 
-const PORT = parseInt(process.env.PORT || '3000', 10);
+// Read port from HA options file (set by user in add-on config), fallback to env/default
+function readOptionsPort() {
+  try {
+    const fs = require('fs');
+    const opts = JSON.parse(fs.readFileSync('/data/options.json', 'utf8'));
+    if (opts.port && Number.isInteger(opts.port)) return opts.port;
+  } catch { /* not running as HA add-on */ }
+  return null;
+}
+const PORT = readOptionsPort() || parseInt(process.env.PORT || '3000', 10);
 const SUPERVISOR_TOKEN = process.env.SUPERVISOR_TOKEN || '';
 const HA_WS_URL = 'ws://supervisor/core/websocket';
 const HA_API_URL = 'http://supervisor/core/api';

@@ -85,16 +85,24 @@ export interface HassArea {
   icon: string | null
 }
 
-// Entity registry entry (lighter than full HassEntity — from WS registry)
+// Entity registry entry (area_id may be null even if the device has one)
 export interface HassEntityRegistryEntry {
   entity_id: string
-  area_id: string | null
+  area_id: string | null   // direct entity override — often null
   device_id: string | null
   platform: string
   disabled_by: string | null
   hidden_by: string | null
   name: string | null
   icon: string | null
+}
+
+// Device registry entry — area is usually set here, not on the entity
+export interface HassDeviceRegistryEntry {
+  id: string
+  area_id: string | null
+  name: string | null
+  name_by_user: string | null
 }
 
 export type ConnectionStatus =

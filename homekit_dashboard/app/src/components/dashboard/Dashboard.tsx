@@ -23,7 +23,7 @@ function ConnectingScreen() {
 }
 
 export function Dashboard() {
-  const { status, entities, entityRegistry, entityAreaOverrides } = useHA()
+  const { status, entities, resolveEntityArea } = useHA()
   const [activeTab, setActiveTab] = useState('all')
   const [showSettings, setShowSettings] = useState(false)
 
@@ -31,15 +31,8 @@ export function Dashboard() {
   const filteredEntities = useMemo<HassEntity[]>(() => {
     const all = Object.values(entities).filter((e) => TILE_DOMAINS.has(getDomain(e.entity_id)))
     if (activeTab === 'all') return all
-
-    return all.filter((e) => {
-      const override = entityAreaOverrides[e.entity_id]
-      const areaId = override !== undefined
-        ? override
-        : (entityRegistry[e.entity_id]?.area_id ?? null)
-      return areaId === activeTab
-    })
-  }, [entities, entityRegistry, entityAreaOverrides, activeTab])
+    return all.filter((e) => resolveEntityArea(e.entity_id) === activeTab)
+  }, [entities, resolveEntityArea, activeTab])
 
   if (status === 'connecting' || status === 'authenticating' || status === 'disconnected') {
     return <ConnectingScreen />

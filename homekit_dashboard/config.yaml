@@ -1,6 +1,6 @@
 name: "HomeKit Dashboard"
 description: "A HomeKit-style dashboard for all your Home Assistant entities — lights, thermostats, locks, switches, covers, and sensors."
-version: "1.0.5"
+version: "1.0.6"
 slug: "homekit_dashboard"
 init: false
 arch:
@@ -14,5 +14,7 @@ ingress: true
 ingress_port: 3000
 panel_icon: mdi:home-assistant
 panel_title: HomeKit Dashboard
-options: {}
-schema: {}
+options:
+  port: 3000
+schema:
+  port: int
