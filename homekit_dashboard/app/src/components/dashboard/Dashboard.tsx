@@ -254,6 +254,12 @@ function HomeView({ onShowSettings, onTabChange }: HomeViewProps) {
     [favorites, entities]
   )
 
+  // Person entities always shown on Home, regardless of area assignment
+  const personEntities = useMemo(
+    () => Object.values(entities).filter((e) => getDomain(e.entity_id) === 'person'),
+    [entities]
+  )
+
   const areasWithEntities = sortedAreas.filter((a) => getAreaEntities(a.area_id).length > 0)
 
   const handleDrop = (targetAreaId: string) => {
@@ -270,7 +276,7 @@ function HomeView({ onShowSettings, onTabChange }: HomeViewProps) {
     setDragOverAreaId(null)
   }
 
-  if (areasWithEntities.length === 0 && favoriteEntities.length === 0) {
+  if (areasWithEntities.length === 0 && favoriteEntities.length === 0 && personEntities.length === 0) {
     return (
       <div>
         <EmptyState />
@@ -297,6 +303,18 @@ function HomeView({ onShowSettings, onTabChange }: HomeViewProps) {
             <span className="text-xs text-ios-secondary ml-1">{favoriteEntities.length}</span>
           </div>
           <TilesGrid entities={favoriteEntities} contextId="favorites" />
+        </div>
+      )}
+
+      {/* People */}
+      {personEntities.length > 0 && (
+        <div>
+          <div className="flex items-center gap-1.5 px-4 pt-5 pb-2">
+            <Home className="w-4 h-4 text-ios-blue" />
+            <h2 className="text-base font-bold text-ios-label">People</h2>
+            <span className="text-xs text-ios-secondary ml-1">{personEntities.length}</span>
+          </div>
+          <TilesGrid entities={personEntities} contextId="people" />
         </div>
       )}
 
