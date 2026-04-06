@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.27] - 2026-04-06
+
+- chore: update changelog
+
 ## [1.0.26] - 2026-04-06
 
 - feat: light group support in color dialog
