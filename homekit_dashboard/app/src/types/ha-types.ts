@@ -78,6 +78,25 @@ export interface HassEvent {
   }
 }
 
+// Area registry
+export interface HassArea {
+  area_id: string
+  name: string
+  icon: string | null
+}
+
+// Entity registry entry (lighter than full HassEntity — from WS registry)
+export interface HassEntityRegistryEntry {
+  entity_id: string
+  area_id: string | null
+  device_id: string | null
+  platform: string
+  disabled_by: string | null
+  hidden_by: string | null
+  name: string | null
+  icon: string | null
+}
+
 export type ConnectionStatus =
   | 'disconnected'
   | 'connecting'

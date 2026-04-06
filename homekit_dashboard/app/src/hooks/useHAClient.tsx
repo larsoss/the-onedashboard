@@ -8,31 +8,61 @@ import React, {
 } from 'react'
 import { HAClient } from '@/lib/ha-client'
 import { fetchStates, fetchHAConfig } from '@/lib/ha-api'
-import type { HassEntity, ConnectionStatus } from '@/types/ha-types'
+import {
+  getEntityAreaOverrides,
+  setEntityAreaOverrides as persistOverrides,
+  getCustomAreas,
+  saveCustomAreas as persistCustomAreas,
+} from '@/lib/area-storage'
+import type {
+  HassEntity,
+  HassArea,
+  HassEntityRegistryEntry,
+  ConnectionStatus,
+} from '@/types/ha-types'
+import type { CustomArea, EntityAreaOverrides } from '@/lib/area-storage'
 
 interface HAContextValue {
   status: ConnectionStatus
   entities: Record<string, HassEntity>
   locationName: string
+  haAreas: HassArea[]
+  customAreas: CustomArea[]
+  entityRegistry: Record<string, HassEntityRegistryEntry>
+  entityAreaOverrides: EntityAreaOverrides
   callService: (
     domain: string,
     service: string,
     data: Record<string, unknown>,
     entityId?: string
   ) => Promise<void>
+  saveEntityAreaOverrides: (overrides: EntityAreaOverrides) => void
+  updateCustomAreas: (areas: CustomArea[]) => void
 }
 
 const HAContext = createContext<HAContextValue>({
   status: 'disconnected',
   entities: {},
   locationName: 'Home',
+  haAreas: [],
+  customAreas: [],
+  entityRegistry: {},
+  entityAreaOverrides: {},
   callService: async () => undefined,
+  saveEntityAreaOverrides: () => undefined,
+  updateCustomAreas: () => undefined,
 })
 
 export function HAProvider({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<ConnectionStatus>('disconnected')
   const [entities, setEntities] = useState<Record<string, HassEntity>>({})
   const [locationName, setLocationName] = useState('Home')
+  const [haAreas, setHaAreas] = useState<HassArea[]>([])
+  const [entityRegistry, setEntityRegistry] = useState<Record<string, HassEntityRegistryEntry>>({})
+  const [entityAreaOverrides, setEntityAreaOverrides] = useState<EntityAreaOverrides>(
+    getEntityAreaOverrides
+  )
+  const [customAreas, setCustomAreas] = useState<CustomArea[]>(getCustomAreas)
   const clientRef = useRef<HAClient | null>(null)
 
   useEffect(() => {
@@ -42,13 +72,10 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
     const unsubStatus = client.onStatusChange((s) => {
       setStatus(s)
       if (s === 'connected') {
-        // Fetch initial entity states and HA config via REST
         fetchStates()
           .then((states) => {
             const map: Record<string, HassEntity> = {}
-            states.forEach((e) => {
-              map[e.entity_id] = e
-            })
+            states.forEach((e) => { map[e.entity_id] = e })
             setEntities(map)
           })
           .catch(console.error)
@@ -56,6 +83,18 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
         fetchHAConfig()
           .then((cfg) => setLocationName(cfg.location_name))
           .catch(() => undefined)
+
+        client.getAreas()
+          .then(setHaAreas)
+          .catch(console.error)
+
+        client.getEntityRegistry()
+          .then((entries) => {
+            const map: Record<string, HassEntityRegistryEntry> = {}
+            entries.forEach((e) => { map[e.entity_id] = e })
+            setEntityRegistry(map)
+          })
+          .catch(console.error)
       }
     })
 
@@ -91,8 +130,31 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
     []
   )
 
+  const saveEntityAreaOverrides = useCallback((overrides: EntityAreaOverrides) => {
+    persistOverrides(overrides)
+    setEntityAreaOverrides(overrides)
+  }, [])
+
+  const updateCustomAreas = useCallback((areas: CustomArea[]) => {
+    persistCustomAreas(areas)
+    setCustomAreas(areas)
+  }, [])
+
   return (
-    <HAContext.Provider value={{ status, entities, locationName, callService }}>
+    <HAContext.Provider
+      value={{
+        status,
+        entities,
+        locationName,
+        haAreas,
+        customAreas,
+        entityRegistry,
+        entityAreaOverrides,
+        callService,
+        saveEntityAreaOverrides,
+        updateCustomAreas,
+      }}
+    >
       {children}
     </HAContext.Provider>
   )

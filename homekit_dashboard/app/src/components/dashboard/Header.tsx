@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Settings } from 'lucide-react'
 import { useHA } from '@/hooks/useHAClient'
 import { cn } from '@/lib/utils'
 import type { ConnectionStatus } from '@/types/ha-types'
@@ -9,11 +10,10 @@ function StatusDot({ status }: { status: ConnectionStatus }) {
       <span
         className={cn(
           'w-2 h-2 rounded-full',
-          status === 'connected'      && 'bg-ios-green',
-          status === 'connecting' || status === 'authenticating'
-                                      ? 'bg-yellow-400 animate-pulse' : '',
-          status === 'error'          && 'bg-ios-red',
-          status === 'disconnected'   && 'bg-ios-secondary',
+          status === 'connected'    ? 'bg-ios-green' : '',
+          (status === 'connecting' || status === 'authenticating') ? 'bg-yellow-400 animate-pulse' : '',
+          status === 'error'        ? 'bg-ios-red' : '',
+          status === 'disconnected' ? 'bg-ios-secondary' : '',
         )}
       />
       {status !== 'connected' && (
@@ -28,8 +28,7 @@ function StatusDot({ status }: { status: ConnectionStatus }) {
 function useTime() {
   const [time, setTime] = useState(() => formatTime(new Date()))
   useEffect(() => {
-    const tick = () => setTime(formatTime(new Date()))
-    const id = setInterval(tick, 30_000)
+    const id = setInterval(() => setTime(formatTime(new Date())), 30_000)
     return () => clearInterval(id)
   }, [])
   return time
@@ -43,7 +42,11 @@ function formatDate(d: Date): string {
   return d.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })
 }
 
-export function Header() {
+interface HeaderProps {
+  onSettingsClick: () => void
+}
+
+export function Header({ onSettingsClick }: HeaderProps) {
   const { status, locationName } = useHA()
   const time = useTime()
 
@@ -57,6 +60,13 @@ export function Header() {
         <div className="flex items-center gap-3 pt-1">
           <StatusDot status={status} />
           <span className="text-base font-semibold text-ios-label tabular-nums">{time}</span>
+          <button
+            onClick={onSettingsClick}
+            className="p-2 rounded-full bg-ios-card text-ios-secondary hover:text-ios-label active:scale-95 transition-all"
+            aria-label="Settings"
+          >
+            <Settings className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </header>

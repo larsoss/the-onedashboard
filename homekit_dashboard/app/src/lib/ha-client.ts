@@ -3,6 +3,8 @@ import type {
   HassWsMessage,
   HassResult,
   HassEvent,
+  HassArea,
+  HassEntityRegistryEntry,
   ConnectionStatus,
 } from '@/types/ha-types'
 
@@ -67,6 +69,26 @@ export class HAClient {
       })
       this._send(msg)
     })
+  }
+
+  // Generic one-shot WS request — used for registry queries
+  callWS<T>(message: HassWsMessage): Promise<T> {
+    return new Promise((resolve, reject) => {
+      const id = this._nextId()
+      this._send({ ...message, id })
+      this.pendingCallbacks.set(id, (result) => {
+        if (result.success) resolve(result.result as T)
+        else reject(new Error(result.error?.message ?? 'WS call failed'))
+      })
+    })
+  }
+
+  getAreas(): Promise<HassArea[]> {
+    return this.callWS<HassArea[]>({ type: 'config/area_registry/list', id: 0 })
+  }
+
+  getEntityRegistry(): Promise<HassEntityRegistryEntry[]> {
+    return this.callWS<HassEntityRegistryEntry[]>({ type: 'config/entity_registry/list', id: 0 })
   }
 
   onStateChange(handler: StateChangeHandler): () => void {

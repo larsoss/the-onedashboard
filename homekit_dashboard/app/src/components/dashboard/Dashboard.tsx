@@ -1,13 +1,16 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Header } from './Header'
 import { RoomTabs } from './RoomTabs'
 import { TilesGrid } from './TilesGrid'
-import { useEntitiesByDomain } from '@/hooks/useEntities'
+import { SettingsPanel } from '@/components/settings/SettingsPanel'
 import { useHA } from '@/hooks/useHAClient'
-import { deriveRoomTabs } from '@/lib/utils'
+import { getDomain } from '@/lib/utils'
 import { Wifi } from 'lucide-react'
+import type { HassEntity } from '@/types/ha-types'
 
-const TABS = deriveRoomTabs()
+const TILE_DOMAINS = new Set([
+  'light', 'switch', 'input_boolean', 'climate', 'lock', 'cover', 'sensor', 'binary_sensor',
+])
 
 function ConnectingScreen() {
   return (
@@ -19,26 +22,38 @@ function ConnectingScreen() {
   )
 }
 
-function DashboardContent({ domains }: { domains: string[] }) {
-  const entities = useEntitiesByDomain(domains)
-  return <TilesGrid entities={entities} />
-}
-
 export function Dashboard() {
-  const { status } = useHA()
+  const { status, entities, entityRegistry, entityAreaOverrides } = useHA()
   const [activeTab, setActiveTab] = useState('all')
+  const [showSettings, setShowSettings] = useState(false)
+
+  // Filter entities for the active tab
+  const filteredEntities = useMemo<HassEntity[]>(() => {
+    const all = Object.values(entities).filter((e) => TILE_DOMAINS.has(getDomain(e.entity_id)))
+    if (activeTab === 'all') return all
+
+    return all.filter((e) => {
+      const override = entityAreaOverrides[e.entity_id]
+      const areaId = override !== undefined
+        ? override
+        : (entityRegistry[e.entity_id]?.area_id ?? null)
+      return areaId === activeTab
+    })
+  }, [entities, entityRegistry, entityAreaOverrides, activeTab])
 
   if (status === 'connecting' || status === 'authenticating' || status === 'disconnected') {
     return <ConnectingScreen />
   }
 
-  const currentTab = TABS.find((t) => t.id === activeTab) ?? TABS[0]
+  if (showSettings) {
+    return <SettingsPanel onClose={() => setShowSettings(false)} />
+  }
 
   return (
     <div className="min-h-screen bg-ios-bg">
-      <Header />
+      <Header onSettingsClick={() => setShowSettings(true)} />
       <RoomTabs activeTab={activeTab} onTabChange={setActiveTab} />
-      <DashboardContent domains={currentTab.domains} />
+      <TilesGrid entities={filteredEntities} />
     </div>
   )
 }
