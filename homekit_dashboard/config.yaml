@@ -1,6 +1,6 @@
 name: "HomeKit Dashboard"
 description: "A HomeKit-style dashboard for all your Home Assistant entities — lights, thermostats, locks, switches, covers, and sensors."
-version: "1.0.11"
+version: "1.0.12"
 slug: "homekit_dashboard"
 init: false
 arch:
