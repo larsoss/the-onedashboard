@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.30] - 2026-04-06
+
+- chore: update changelog
+
 ## [1.0.29] - 2026-04-06
 
 - feat: person card tile with linked sensors
