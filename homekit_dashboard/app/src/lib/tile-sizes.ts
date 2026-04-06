@@ -1,18 +1,20 @@
+import { userKey } from './user-context'
+
 export type TileSpan = '1x1' | '2x1' | '1x2' | '2x2'
 export type EntityTileSizes = Record<string, TileSpan>
 
-const KEY = 'hk_tile_sizes'
+function key() { return userKey('hk_tile_sizes') }
 
 export function getTileSizes(): EntityTileSizes {
   try {
-    return JSON.parse(localStorage.getItem(KEY) ?? '{}') as EntityTileSizes
+    return JSON.parse(localStorage.getItem(key()) ?? '{}') as EntityTileSizes
   } catch {
     return {}
   }
 }
 
 export function saveTileSizes(sizes: EntityTileSizes): void {
-  localStorage.setItem(KEY, JSON.stringify(sizes))
+  localStorage.setItem(key(), JSON.stringify(sizes))
 }
 
 /** Tailwind col/row span classes per TileSpan */

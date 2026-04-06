@@ -53,6 +53,27 @@ app.use('/ha-api', (req, res) => {
   req.pipe(proxyReq);
 });
 
+const fs = require('fs');
+
+app.use('/dashboard-api', express.json({ limit: '2mb' }));
+
+app.get('/dashboard-api/settings/:userId', (req, res) => {
+  const safeId = req.params.userId.replace(/[^a-z0-9_-]/gi, '_').slice(0, 64)
+  const file = path.join('/data', `user_settings_${safeId}.json`)
+  try {
+    res.json(fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {})
+  } catch { res.json({}) }
+})
+
+app.put('/dashboard-api/settings/:userId', (req, res) => {
+  const safeId = req.params.userId.replace(/[^a-z0-9_-]/gi, '_').slice(0, 64)
+  const file = path.join('/data', `user_settings_${safeId}.json`)
+  try {
+    fs.writeFileSync(file, JSON.stringify(req.body))
+    res.json({ ok: true })
+  } catch (e) { res.status(500).json({ error: String(e) }) }
+})
+
 // Fallback: serve React app for all other GET routes (SPA)
 app.get('*', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));

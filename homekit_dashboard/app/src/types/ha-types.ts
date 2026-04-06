@@ -116,3 +116,10 @@ export type ConnectionStatus =
   | 'authenticating'
   | 'connected'
   | 'error'
+
+export interface HAUser {
+  id: string
+  name: string
+  is_owner: boolean
+  is_active: boolean
+}

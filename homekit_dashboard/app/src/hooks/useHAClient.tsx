@@ -50,14 +50,21 @@ import type {
   HassEntityRegistryEntry,
   HassDeviceRegistryEntry,
   ConnectionStatus,
+  HAUser,
 } from '@/types/ha-types'
 import type { CustomArea, EntityAreaOverrides } from '@/lib/area-storage'
+import { getStoredUserId, storeUserId } from '@/components/dashboard/UserPicker'
+import { setCurrentUserId, scheduleSyncToServer } from '@/lib/user-context'
+import { loadServerSettings, applyServerSettings } from '@/lib/settings-sync'
 
 interface HAContextValue {
   status: ConnectionStatus
   entities: Record<string, HassEntity>
   locationName: string
   haAreas: HassArea[]
+  haUsers: HAUser[]
+  currentUserId: string | null
+  selectUser: (userId: string) => Promise<void>
   customAreas: CustomArea[]
   entityRegistry: Record<string, HassEntityRegistryEntry>
   deviceRegistry: Record<string, HassDeviceRegistryEntry>
@@ -103,6 +110,9 @@ const HAContext = createContext<HAContextValue>({
   entities: {},
   locationName: 'Home',
   haAreas: [],
+  haUsers: [],
+  currentUserId: null,
+  selectUser: async () => undefined,
   customAreas: [],
   entityRegistry: {},
   deviceRegistry: {},
@@ -134,6 +144,8 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
   const [entities, setEntities] = useState<Record<string, HassEntity>>({})
   const [locationName, setLocationName] = useState('Home')
   const [haAreas, setHaAreas] = useState<HassArea[]>([])
+  const [haUsers, setHaUsers] = useState<HAUser[]>([])
+  const [currentUserId, setCurrentUserIdState] = useState<string | null>(null)
   const [entityRegistry, setEntityRegistry] = useState<Record<string, HassEntityRegistryEntry>>({})
   const [deviceRegistry, setDeviceRegistry] = useState<Record<string, HassDeviceRegistryEntry>>({})
   const [entityAreaOverrides, setEntityAreaOverrides] = useState<EntityAreaOverrides>(
@@ -198,6 +210,10 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
             devices.forEach((d) => { map[d.id] = d })
             setDeviceRegistry(map)
           })
+          .catch(console.error)
+
+        client.getUsers()
+          .then(setHaUsers)
           .catch(console.error)
       }
     })
@@ -264,6 +280,7 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
     saveTheme(t)
     setThemeState(t)
     document.documentElement.style.setProperty('--theme-bg', BG_VALUES[t.bgStyle])
+    scheduleSyncToServer()
   }, [])
 
   const toggleFavorite = useCallback((entityId: string) => {
@@ -272,6 +289,7 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
         ? prev.filter((id) => id !== entityId)
         : [...prev, entityId]
       saveFavorites(next)
+      scheduleSyncToServer()
       return next
     })
   }, [])
@@ -279,6 +297,7 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
   const saveAreaOrderCb = useCallback((order: string[]) => {
     persistAreaOrder(order)
     setAreaOrderState(order)
+    scheduleSyncToServer()
   }, [])
 
   const toggleEditMode = useCallback(() => {
@@ -291,6 +310,7 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
         ? prev.filter((id) => id !== entityId)
         : [...prev, entityId]
       saveHiddenEntities(next)
+      scheduleSyncToServer()
       return next
     })
   }, [])
@@ -299,6 +319,7 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
     setEntityOrderState((prev) => {
       const next = { ...prev, [contextId]: order }
       saveEntityOrder(next)
+      scheduleSyncToServer()
       return next
     })
   }, [])
@@ -307,6 +328,7 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
     setEntityTileSizesState((prev) => {
       const next = { ...prev, [entityId]: span }
       saveTileSizes(next)
+      scheduleSyncToServer()
       return next
     })
   }, [])
@@ -320,9 +342,37 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
         next[entityId] = iconName
       }
       saveEntityIcons(next)
+      scheduleSyncToServer()
       return next
     })
   }, [])
+
+  const selectUser = useCallback(async (userId: string) => {
+    setCurrentUserId(userId)
+    storeUserId(userId)
+    setCurrentUserIdState(userId)
+    // Load from server
+    const serverSettings = await loadServerSettings(userId)
+    if (serverSettings) {
+      applyServerSettings(serverSettings)
+    }
+    // Reload all state from (now-updated) localStorage
+    setThemeState(getTheme())
+    setFavoritesState(getFavorites())
+    setAreaOrderState(getAreaOrder())
+    setEntityIcons(getEntityIcons())
+    setEntityTileSizesState(getTileSizes())
+    setHiddenEntitiesState(getHiddenEntities())
+    setEntityOrderState(getEntityOrder())
+  }, [])
+
+  // Auto-select previously stored user on mount
+  useEffect(() => {
+    const storedId = getStoredUserId()
+    if (storedId) {
+      selectUser(storedId).catch(console.error)
+    }
+  }, [selectUser])
 
   return (
     <HAContext.Provider
@@ -331,6 +381,9 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
         entities,
         locationName,
         haAreas,
+        haUsers,
+        currentUserId,
+        selectUser,
         customAreas,
         entityRegistry,
         deviceRegistry,

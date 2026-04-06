@@ -7,6 +7,7 @@ import type {
   HassEntityRegistryEntry,
   HassDeviceRegistryEntry,
   ConnectionStatus,
+  HAUser,
 } from '@/types/ha-types'
 
 type StateChangeHandler = (entityId: string, newState: HassEntity | null) => void
@@ -94,6 +95,10 @@ export class HAClient {
 
   getDeviceRegistry(): Promise<HassDeviceRegistryEntry[]> {
     return this.callWS<HassDeviceRegistryEntry[]>({ type: 'config/device_registry/list', id: 0 })
+  }
+
+  getUsers(): Promise<HAUser[]> {
+    return this.callWS<HAUser[]>({ type: 'config/auth/list', id: 0 })
   }
 
   onStateChange(handler: StateChangeHandler): () => void {

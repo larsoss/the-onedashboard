@@ -3,6 +3,7 @@ import { Header } from './Header'
 import { RoomTabs } from './RoomTabs'
 import { TilesGrid } from './TilesGrid'
 import { SettingsPanel } from '@/components/settings/SettingsPanel'
+import { UserPicker } from './UserPicker'
 import { useHA } from '@/hooks/useHAClient'
 import { getDomain } from '@/lib/utils'
 import { GRID_COLS } from '@/lib/theme-storage'
@@ -361,7 +362,7 @@ function HomeView({ onShowSettings, onTabChange }: HomeViewProps) {
 // ── Dashboard ────────────────────────────────────────────────────────────────
 
 export function Dashboard() {
-  const { status, entities, resolveEntityArea } = useHA()
+  const { status, entities, resolveEntityArea, currentUserId, haUsers, selectUser } = useHA()
   const [activeTab, setActiveTab] = useState('home')
   const [showSettings, setShowSettings] = useState(false)
 
@@ -378,6 +379,19 @@ export function Dashboard() {
 
   if (showSettings) {
     return <SettingsPanel onClose={() => setShowSettings(false)} />
+  }
+
+  // Show user picker when user not yet selected and users loaded
+  if (status === 'connected' && currentUserId === null && haUsers.length > 0) {
+    return (
+      <>
+        <div className="min-h-dvh max-w-screen-2xl mx-auto">
+          <Header onSettingsClick={() => setShowSettings(true)} />
+          <RoomTabs activeTab={activeTab} onTabChange={setActiveTab} />
+        </div>
+        <UserPicker users={haUsers} onSelect={selectUser} />
+      </>
+    )
   }
 
   return (

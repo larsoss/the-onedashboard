@@ -1,3 +1,5 @@
+import { userKey } from './user-context'
+
 export interface PersonConfig {
   batteryLevel?: string       // sensor entity_id for battery %
   batteryState?: string       // sensor entity_id for charging state
@@ -12,16 +14,16 @@ export interface PersonConfig {
 
 export type PersonConfigMap = Record<string, PersonConfig>
 
-const KEY = 'hk_person_configs'
+function key() { return userKey('hk_person_configs') }
 
 export function getPersonConfigs(): PersonConfigMap {
   try {
-    return JSON.parse(localStorage.getItem(KEY) ?? '{}') as PersonConfigMap
+    return JSON.parse(localStorage.getItem(key()) ?? '{}') as PersonConfigMap
   } catch {
     return {}
   }
 }
 
 export function savePersonConfigs(map: PersonConfigMap): void {
-  localStorage.setItem(KEY, JSON.stringify(map))
+  localStorage.setItem(key(), JSON.stringify(map))
 }

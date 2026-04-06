@@ -25,18 +25,20 @@ export const DEFAULT_THEME: ThemeConfig = {
   tileOpacity: 80,
 }
 
-const KEY = 'hk_theme'
+import { userKey } from './user-context'
+
+function key() { return userKey('hk_theme') }
 
 export function getTheme(): ThemeConfig {
   try {
-    return { ...DEFAULT_THEME, ...(JSON.parse(localStorage.getItem(KEY) ?? '{}') as Partial<ThemeConfig>) }
+    return { ...DEFAULT_THEME, ...(JSON.parse(localStorage.getItem(key()) ?? '{}') as Partial<ThemeConfig>) }
   } catch {
     return DEFAULT_THEME
   }
 }
 
 export function saveTheme(t: ThemeConfig): void {
-  localStorage.setItem(KEY, JSON.stringify(t))
+  localStorage.setItem(key(), JSON.stringify(t))
 }
 
 /** Background CSS values per bgStyle */
