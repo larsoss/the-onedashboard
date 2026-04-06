@@ -1,6 +1,6 @@
 name: "The-One Dashboard"
 description: "A beautiful, fully customizable Home Assistant dashboard with glassmorphism tiles, area-based rooms, color light controls, and real-time updates."
-version: "1.0.37"
+version: "1.0.38"
 slug: "homekit_dashboard"
 init: false
 arch:
