@@ -13,6 +13,10 @@ import {
   setEntityAreaOverrides as persistOverrides,
   getCustomAreas,
   saveCustomAreas as persistCustomAreas,
+  getFavorites,
+  saveFavorites,
+  getAreaOrder,
+  saveAreaOrder as persistAreaOrder,
 } from '@/lib/area-storage'
 import {
   getTheme,
@@ -60,6 +64,12 @@ interface HAContextValue {
   // Entity icon overrides
   entityIcons: EntityIconMap
   saveEntityIcon: (entityId: string, iconName: string | null) => void
+  // Favorites
+  favorites: string[]
+  toggleFavorite: (entityId: string) => void
+  // Area display order
+  areaOrder: string[]
+  saveAreaOrder: (order: string[]) => void
 }
 
 const HAContext = createContext<HAContextValue>({
@@ -79,6 +89,10 @@ const HAContext = createContext<HAContextValue>({
   setTheme: () => undefined,
   entityIcons: {},
   saveEntityIcon: () => undefined,
+  favorites: [],
+  toggleFavorite: () => undefined,
+  areaOrder: [],
+  saveAreaOrder: () => undefined,
 })
 
 export function HAProvider({ children }: { children: React.ReactNode }) {
@@ -94,6 +108,8 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
   const [customAreas, setCustomAreas] = useState<CustomArea[]>(getCustomAreas)
   const [theme, setThemeState] = useState<ThemeConfig>(getTheme)
   const [entityIcons, setEntityIcons] = useState<EntityIconMap>(getEntityIcons)
+  const [favorites, setFavoritesState] = useState<string[]>(getFavorites)
+  const [areaOrder, setAreaOrderState] = useState<string[]>(getAreaOrder)
   const clientRef = useRef<HAClient | null>(null)
 
   // Apply background CSS variable whenever bgStyle changes
@@ -212,6 +228,21 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.style.setProperty('--theme-bg', BG_VALUES[t.bgStyle])
   }, [])
 
+  const toggleFavorite = useCallback((entityId: string) => {
+    setFavoritesState((prev) => {
+      const next = prev.includes(entityId)
+        ? prev.filter((id) => id !== entityId)
+        : [...prev, entityId]
+      saveFavorites(next)
+      return next
+    })
+  }, [])
+
+  const saveAreaOrderCb = useCallback((order: string[]) => {
+    persistAreaOrder(order)
+    setAreaOrderState(order)
+  }, [])
+
   const saveEntityIcon = useCallback((entityId: string, iconName: string | null) => {
     setEntityIcons((prev) => {
       const next = { ...prev }
@@ -244,6 +275,10 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
         setTheme,
         entityIcons,
         saveEntityIcon,
+        favorites,
+        toggleFavorite,
+        areaOrder,
+        saveAreaOrder: saveAreaOrderCb,
       }}
     >
       {children}

@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.10] - 2026-04-06
+
+- Responsive layout, Home view, tile customization, and README update
+
 ## [1.0.9] - 2026-04-06
 
 - Sync CHANGELOG.md staged by commit-msg hook

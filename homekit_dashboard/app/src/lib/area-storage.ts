@@ -43,3 +43,27 @@ export function getCustomAreas(): CustomArea[] {
 export function saveCustomAreas(areas: CustomArea[]): void {
   localStorage.setItem(KEY_CUSTOM_AREAS, JSON.stringify(areas))
 }
+
+// ── Favorites ────────────────────────────────────────────────────────────────
+const KEY_FAVORITES = 'hk_favorites'
+
+export function getFavorites(): string[] {
+  try { return JSON.parse(localStorage.getItem(KEY_FAVORITES) ?? '[]') as string[] }
+  catch { return [] }
+}
+
+export function saveFavorites(ids: string[]): void {
+  localStorage.setItem(KEY_FAVORITES, JSON.stringify(ids))
+}
+
+// ── Area display order ────────────────────────────────────────────────────────
+const KEY_AREA_ORDER = 'hk_area_order'
+
+export function getAreaOrder(): string[] {
+  try { return JSON.parse(localStorage.getItem(KEY_AREA_ORDER) ?? '[]') as string[] }
+  catch { return [] }
+}
+
+export function saveAreaOrder(ids: string[]): void {
+  localStorage.setItem(KEY_AREA_ORDER, JSON.stringify(ids))
+}

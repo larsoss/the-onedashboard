@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { ArrowLeft, Plus, Pencil, Trash2, Search, X, Check } from 'lucide-react'
+import { ArrowLeft, Plus, Pencil, Trash2, Search, X, Check, Star } from 'lucide-react'
 import {
   Lightbulb, ToggleRight, Thermometer, Lock, Blinds, Activity,
 } from 'lucide-react'
@@ -484,6 +484,8 @@ export function SettingsPanel({ onClose }: Props) {
     updateCustomAreas,
     entityIcons,
     theme,
+    favorites,
+    toggleFavorite,
   } = useHA()
 
   const [section, setSection] = useState<'areas' | 'appearance'>('areas')
@@ -686,6 +688,16 @@ export function SettingsPanel({ onClose }: Props) {
                               </p>
                             </div>
                             <button
+                              onClick={() => toggleFavorite(eid)}
+                              title={favorites.includes(eid) ? 'Remove from favorites' : 'Add to favorites'}
+                              className={cn(
+                                'p-1 transition-colors',
+                                favorites.includes(eid) ? 'text-ios-amber' : 'text-ios-secondary hover:text-ios-amber'
+                              )}
+                            >
+                              <Star className={cn('w-4 h-4', favorites.includes(eid) && 'fill-ios-amber')} />
+                            </button>
+                            <button
                               onClick={() => {
                                 const newOverrides = { ...entityAreaOverrides, [eid]: null }
                                 saveEntityAreaOverrides(newOverrides)
@@ -742,6 +754,16 @@ export function SettingsPanel({ onClose }: Props) {
                         {eid}
                       </p>
                     </div>
+                    <button
+                      onClick={() => toggleFavorite(eid)}
+                      title={favorites.includes(eid) ? 'Remove from favorites' : 'Add to favorites'}
+                      className={cn(
+                        'p-1 transition-colors',
+                        favorites.includes(eid) ? 'text-ios-amber' : 'text-ios-secondary hover:text-ios-amber'
+                      )}
+                    >
+                      <Star className={cn('w-4 h-4', favorites.includes(eid) && 'fill-ios-amber')} />
+                    </button>
                   </div>
                 )
               })}
