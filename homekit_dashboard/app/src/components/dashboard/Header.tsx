@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Settings, Lightbulb, ToggleRight, Thermometer, Lock } from 'lucide-react'
+import { Settings, Pencil, Check, Lightbulb, ToggleRight, Thermometer, Lock } from 'lucide-react'
 import { useHA } from '@/hooks/useHAClient'
 import { getDomain } from '@/lib/utils'
 import { cn } from '@/lib/utils'
@@ -55,7 +55,7 @@ interface HeaderProps {
 }
 
 export function Header({ onSettingsClick }: HeaderProps) {
-  const { status, locationName, entities } = useHA()
+  const { status, locationName, entities, isEditMode, toggleEditMode } = useHA()
   const time = useTime()
 
   const statusChips = useMemo<StatusChip[]>(() => {
@@ -99,6 +99,18 @@ export function Header({ onSettingsClick }: HeaderProps) {
         <div className="flex items-center gap-2 pt-1 shrink-0">
           <StatusDot status={status} />
           <span className="text-base font-semibold text-ios-label tabular-nums">{time}</span>
+          <button
+            onClick={toggleEditMode}
+            className={cn(
+              'p-2 rounded-full active:scale-95 transition-all',
+              isEditMode
+                ? 'bg-ios-blue text-white'
+                : 'bg-ios-card text-ios-secondary hover:text-ios-label'
+            )}
+            aria-label={isEditMode ? 'Done editing' : 'Edit tiles'}
+          >
+            {isEditMode ? <Check className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
+          </button>
           <button
             onClick={onSettingsClick}
             className="p-2 rounded-full bg-ios-card text-ios-secondary hover:text-ios-label active:scale-95 transition-all"

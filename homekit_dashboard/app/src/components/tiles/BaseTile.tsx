@@ -29,6 +29,8 @@ const GLASS_TINT_RGB: Record<ActiveColor, string> = {
 interface BaseTileProps {
   isActive?: boolean
   activeColor?: ActiveColor
+  /** Override the computed tint RGB (e.g. from light color). Format: "R,G,B" */
+  customTintRgb?: string
   icon: React.ReactNode
   label: string
   sublabel?: string
@@ -41,6 +43,7 @@ interface BaseTileProps {
 export function BaseTile({
   isActive = false,
   activeColor = 'none',
+  customTintRgb,
   icon,
   label,
   sublabel,
@@ -75,11 +78,14 @@ export function BaseTile({
     didLongPress.current = false
   }, [onClick])
 
+  // Effective tint: use customTintRgb if provided, otherwise domain color
+  const tintRgb = customTintRgb ?? GLASS_TINT_RGB[activeColor]
+
   // Compute background via inline style so opacity is fully dynamic
   const bgStyle: React.CSSProperties = isGlass
     ? isActive
       ? {
-          background: `rgba(${GLASS_TINT_RGB[activeColor]},${(activeColor === 'none' ? 0.12 : 0.18) * opacity})`,
+          background: `rgba(${tintRgb},${(activeColor === 'none' && !customTintRgb ? 0.12 : 0.22) * opacity})`,
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           border: `1px solid rgba(255,255,255,${0.18 * opacity})`,
@@ -91,9 +97,7 @@ export function BaseTile({
           border: `1px solid rgba(255,255,255,${0.10 * opacity})`,
         }
     : isActive
-      ? activeColor !== 'none'
-        ? { background: `rgba(${GLASS_TINT_RGB[activeColor]},${0.20 * opacity})` }
-        : { background: `rgba(58,58,60,${opacity})` }
+      ? { background: `rgba(${tintRgb},${0.22 * opacity})` }
       : { background: `rgba(44,44,46,${opacity})` }
 
   const colorKey = isActive ? activeColor : 'none'

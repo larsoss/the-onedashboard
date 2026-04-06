@@ -11,13 +11,18 @@ export interface HassEntity {
 // Domain-specific attribute helpers (use with type assertions)
 export interface LightAttributes {
   friendly_name?: string
-  brightness?: number          // 0-255
-  color_temp?: number
+  brightness?: number                     // 0-255
+  color_mode?: string                     // current active mode
+  supported_color_modes?: string[]        // e.g. ['hs','color_temp']
+  hs_color?: [number, number]            // [hue 0-360, sat 0-100]
   rgb_color?: [number, number, number]
-  supported_color_modes?: string[]
-  supported_features?: number
+  color_temp?: number                     // mireds
+  color_temp_kelvin?: number
   min_mireds?: number
   max_mireds?: number
+  min_color_temp_kelvin?: number
+  max_color_temp_kelvin?: number
+  supported_features?: number
 }
 
 export interface ClimateAttributes {

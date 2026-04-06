@@ -29,6 +29,12 @@ import {
   saveEntityIcons,
   type EntityIconMap,
 } from '@/lib/icon-storage'
+import {
+  getTileSizes,
+  saveTileSizes,
+  type EntityTileSizes,
+  type TileSpan,
+} from '@/lib/tile-sizes'
 import type {
   HassEntity,
   HassArea,
@@ -70,6 +76,11 @@ interface HAContextValue {
   // Area display order
   areaOrder: string[]
   saveAreaOrder: (order: string[]) => void
+  // Edit mode
+  isEditMode: boolean
+  toggleEditMode: () => void
+  entityTileSizes: EntityTileSizes
+  setEntityTileSize: (entityId: string, span: TileSpan) => void
 }
 
 const HAContext = createContext<HAContextValue>({
@@ -93,6 +104,10 @@ const HAContext = createContext<HAContextValue>({
   toggleFavorite: () => undefined,
   areaOrder: [],
   saveAreaOrder: () => undefined,
+  isEditMode: false,
+  toggleEditMode: () => undefined,
+  entityTileSizes: {},
+  setEntityTileSize: () => undefined,
 })
 
 export function HAProvider({ children }: { children: React.ReactNode }) {
@@ -110,6 +125,8 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
   const [entityIcons, setEntityIcons] = useState<EntityIconMap>(getEntityIcons)
   const [favorites, setFavoritesState] = useState<string[]>(getFavorites)
   const [areaOrder, setAreaOrderState] = useState<string[]>(getAreaOrder)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [entityTileSizes, setEntityTileSizesState] = useState<EntityTileSizes>(getTileSizes)
   const clientRef = useRef<HAClient | null>(null)
 
   // Apply background CSS variable whenever bgStyle changes
@@ -243,6 +260,18 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
     setAreaOrderState(order)
   }, [])
 
+  const toggleEditMode = useCallback(() => {
+    setIsEditMode((prev) => !prev)
+  }, [])
+
+  const setEntityTileSize = useCallback((entityId: string, span: TileSpan) => {
+    setEntityTileSizesState((prev) => {
+      const next = { ...prev, [entityId]: span }
+      saveTileSizes(next)
+      return next
+    })
+  }, [])
+
   const saveEntityIcon = useCallback((entityId: string, iconName: string | null) => {
     setEntityIcons((prev) => {
       const next = { ...prev }
@@ -279,6 +308,10 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
         toggleFavorite,
         areaOrder,
         saveAreaOrder: saveAreaOrderCb,
+        isEditMode,
+        toggleEditMode,
+        entityTileSizes,
+        setEntityTileSize,
       }}
     >
       {children}
