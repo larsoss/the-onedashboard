@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.14] - 2026-04-06
+
+- feat: color picker for lights + tile edit mode
+
 ## [1.0.13] - 2026-04-06
 
 - Sync CHANGELOG.md staged by commit-msg hook
