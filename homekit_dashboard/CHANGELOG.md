@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.12] - 2026-04-06
+
+- Sync CHANGELOG.md staged by commit-msg hook
+
 ## [1.0.11] - 2026-04-06
 
 - Add favorites, status overview, drag-to-reorder areas, and responsive header
