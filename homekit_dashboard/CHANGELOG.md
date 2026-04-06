@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.23] - 2026-04-06
+
+- rebrand: HomeKit Dashboard → The-One Dashboard
+
 ## [1.0.22] - 2026-04-06
 
 - chore: update changelog
