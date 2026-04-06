@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.6] - 2026-04-06
+
+- Fix area resolution via device registry + add configurable port
+
 ## [1.0.5] - 2026-04-06
 
 - Sync CHANGELOG.md staged by commit-msg hook
