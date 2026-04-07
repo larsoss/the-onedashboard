@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.41] - 2026-04-07
+
+- feat: auto-detect logged-in HA user via ingress header
+
 ## [1.0.40] - 2026-04-06
 
 - chore: update changelog
