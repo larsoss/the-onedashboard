@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import type { HassEntity } from '@/types/ha-types'
 import { getDomain } from '@/lib/utils'
 import { LightTile } from '@/components/tiles/LightTile'
@@ -20,7 +20,7 @@ import { useHA } from '@/hooks/useHAClient'
 import { GRID_COLS } from '@/lib/theme-storage'
 import { SPAN_CLASSES, type TileSpan } from '@/lib/tile-sizes'
 import { ICON_OPTIONS } from '@/lib/icons'
-import { Activity, EyeOff, X, Heart, GripVertical } from 'lucide-react'
+import { Activity, EyeOff, X, Heart, GripVertical, GripHorizontal } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const SUPPORTED_DOMAINS = new Set([
@@ -33,12 +33,6 @@ const SUPPORTED_DOMAINS = new Set([
 // Domains that should be hidden when their entity is inactive (not in edit mode)
 const HIDE_WHEN_INACTIVE = new Set(['media_player'])
 
-const SPAN_OPTIONS: { span: TileSpan; label: string }[] = [
-  { span: '1x1', label: '1×1' },
-  { span: '2x1', label: '2×1' },
-  { span: '1x2', label: '1×2' },
-  { span: '2x2', label: '2×2' },
-]
 
 function Tile({ entity }: { entity: HassEntity }) {
   const domain = getDomain(entity.entity_id)
@@ -126,40 +120,79 @@ function IconPicker({ entityId, onClose }: IconPickerProps) {
   )
 }
 
-interface EditOverlayProps {
-  entityId: string
+// Snap span based on drag delta relative to one tile cell size
+function snapSpan(current: TileSpan, dx: number, dy: number, cellW: number, cellH: number): TileSpan {
+  const [c, r] = current.split('x').map(Number)
+  const newC = dx > cellW * 0.45 ? 2 : dx < -cellW * 0.45 ? 1 : c
+  const newR = dy > cellH * 0.45 ? 2 : dy < -cellH * 0.45 ? 1 : r
+  return `${newC}x${newR}` as TileSpan
 }
 
-function EditOverlay({ entityId }: EditOverlayProps) {
+interface EditOverlayProps {
+  entityId: string
+  tileRef: React.RefObject<HTMLDivElement>
+}
+
+function EditOverlay({ entityId, tileRef }: EditOverlayProps) {
   const { entityTileSizes, setEntityTileSize, toggleHideEntity, toggleFavorite, favorites } = useHA()
   const [showIconPicker, setShowIconPicker] = useState(false)
   const current = entityTileSizes[entityId] ?? '1x1'
   const isFavorited = favorites.includes(entityId)
 
+  // Resize handle state
+  const dragStart = useRef<{ x: number; y: number; span: TileSpan; cellW: number; cellH: number } | null>(null)
+  const [previewSpan, setPreviewSpan] = useState<TileSpan | null>(null)
+
+  const onResizePointerDown = useCallback((e: React.PointerEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+    const el = tileRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    // Cell size = current rendered tile size ÷ current span columns/rows
+    const [c, r] = current.split('x').map(Number)
+    dragStart.current = {
+      x: e.clientX,
+      y: e.clientY,
+      span: current,
+      cellW: rect.width / c,
+      cellH: rect.height / r,
+    }
+    ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+  }, [current, tileRef])
+
+  const onResizePointerMove = useCallback((e: React.PointerEvent) => {
+    if (!dragStart.current) return
+    const { x, y, span, cellW, cellH } = dragStart.current
+    const dx = e.clientX - x
+    const dy = e.clientY - y
+    setPreviewSpan(snapSpan(span, dx, dy, cellW, cellH))
+  }, [])
+
+  const onResizePointerUp = useCallback((e: React.PointerEvent) => {
+    if (!dragStart.current) return
+    const { x, y, span, cellW, cellH } = dragStart.current
+    const dx = e.clientX - x
+    const dy = e.clientY - y
+    const newSpan = snapSpan(span, dx, dy, cellW, cellH)
+    setEntityTileSize(entityId, newSpan)
+    dragStart.current = null
+    setPreviewSpan(null)
+  }, [entityId, setEntityTileSize])
+
+  const displaySpan = previewSpan ?? current
+
   return (
     <>
       <div className="absolute inset-0 z-10 rounded-2xl flex flex-col items-center justify-center gap-2 bg-black/50 backdrop-blur-[2px] pointer-events-none">
-        {/* Drag handle */}
+        {/* Drag-reorder handle (top center) */}
         <div className="pointer-events-auto absolute top-2 left-1/2 -translate-x-1/2 cursor-grab">
           <GripVertical className="w-4 h-4 text-white/60" />
         </div>
-        {/* Span buttons */}
-        <div className="flex flex-wrap gap-1 justify-center px-2 pointer-events-auto">
-          {SPAN_OPTIONS.map(({ span, label }) => (
-            <button
-              key={span}
-              onClick={(e) => { e.stopPropagation(); setEntityTileSize(entityId, span) }}
-              className={cn(
-                'px-2 py-1 rounded-lg text-xs font-medium transition-all',
-                current === span
-                  ? 'bg-ios-blue text-white'
-                  : 'bg-white/20 text-white hover:bg-white/30'
-              )}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+
+        {/* Current size indicator */}
+        <span className="text-[10px] text-white/50 font-mono absolute top-2 right-2">{displaySpan}</span>
+
         {/* Icon + Heart + Hide buttons */}
         <div className="flex gap-1.5 pointer-events-auto">
           <button
@@ -183,6 +216,22 @@ function EditOverlay({ entityId }: EditOverlayProps) {
             <EyeOff className="w-3 h-3" />
           </button>
         </div>
+
+        {/* Resize handle — bottom-right corner */}
+        <div
+          className={cn(
+            'pointer-events-auto absolute bottom-1.5 right-1.5 cursor-nwse-resize',
+            'w-6 h-6 rounded-lg flex items-center justify-center',
+            'bg-white/20 hover:bg-white/40 transition-colors',
+            previewSpan && previewSpan !== current && 'bg-ios-blue/60',
+          )}
+          onPointerDown={onResizePointerDown}
+          onPointerMove={onResizePointerMove}
+          onPointerUp={onResizePointerUp}
+          title="Sleep om te resizen"
+        >
+          <GripHorizontal className="w-3.5 h-3.5 text-white rotate-45" />
+        </div>
       </div>
       {showIconPicker && (
         <IconPicker entityId={entityId} onClose={() => setShowIconPicker(false)} />
@@ -191,9 +240,50 @@ function EditOverlay({ entityId }: EditOverlayProps) {
   )
 }
 
+// Per-tile wrapper with its own ref so EditOverlay can measure the tile for resize
+interface TileWrapperProps {
+  entity: HassEntity
+  span: TileSpan
+  isEditMode: boolean
+  isDragging: boolean
+  isDragOver: boolean
+  isFavorited: boolean
+  contextId?: string
+  onDragStart: () => void
+  onDragOver: (e: React.DragEvent) => void
+  onDrop: () => void
+  onDragEnd: () => void
+}
+
+function TileWrapper({ entity, span, isEditMode, isDragging, isDragOver, isFavorited, contextId, onDragStart, onDragOver, onDrop, onDragEnd }: TileWrapperProps) {
+  const tileRef = useRef<HTMLDivElement>(null)
+  return (
+    <div
+      ref={tileRef}
+      draggable={isEditMode && !!contextId}
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+      onDragEnd={onDragEnd}
+      className={cn(
+        'relative transition-all duration-150',
+        SPAN_CLASSES[span],
+        isDragging && 'opacity-40 scale-95',
+        isDragOver && 'ring-2 ring-ios-blue ring-offset-1 ring-offset-transparent rounded-2xl',
+      )}
+    >
+      <Tile entity={entity} />
+      {isEditMode && <EditOverlay entityId={entity.entity_id} tileRef={tileRef} />}
+      {!isEditMode && isFavorited && (
+        <Heart className="w-3 h-3 fill-red-400 text-red-400 absolute top-1.5 right-1.5 z-5 pointer-events-none" />
+      )}
+    </div>
+  )
+}
+
 interface TilesGridProps {
   entities: HassEntity[]
-  contextId?: string   // area_id or 'favorites' — used for drag-reorder persistence
+  contextId?: string
   className?: string
 }
 
@@ -252,26 +342,20 @@ export function TilesGrid({ entities, contextId, className }: TilesGridProps) {
         const isDragging = dragId === entity.entity_id
         const isDragOver = dragOverId === entity.entity_id && dragId !== entity.entity_id
         return (
-          <div
+          <TileWrapper
             key={entity.entity_id}
-            draggable={isEditMode && !!contextId}
+            entity={entity}
+            span={span}
+            isEditMode={isEditMode}
+            isDragging={isDragging}
+            isDragOver={isDragOver}
+            isFavorited={favorites.includes(entity.entity_id)}
+            contextId={contextId}
             onDragStart={() => setDragId(entity.entity_id)}
             onDragOver={(e) => { e.preventDefault(); if (dragId) setDragOverId(entity.entity_id) }}
             onDrop={() => handleDrop(entity.entity_id)}
             onDragEnd={() => { setDragId(null); setDragOverId(null) }}
-            className={cn(
-              'relative transition-all duration-150',
-              SPAN_CLASSES[span],
-              isDragging && 'opacity-40 scale-95',
-              isDragOver && 'ring-2 ring-ios-blue ring-offset-1 ring-offset-transparent rounded-2xl',
-            )}
-          >
-            <Tile entity={entity} />
-            {isEditMode && <EditOverlay entityId={entity.entity_id} />}
-            {!isEditMode && favorites.includes(entity.entity_id) && (
-              <Heart className="w-3 h-3 fill-red-400 text-red-400 absolute top-1.5 right-1.5 z-5 pointer-events-none" />
-            )}
-          </div>
+          />
         )
       })}
     </div>

@@ -326,7 +326,7 @@ export function LightTile({ entityId }: LightTileProps) {
         {tile}
 
         <Dialog open={colorOpen} onOpenChange={setColorOpen}>
-          <DialogContent className="max-h-[90dvh] overflow-y-auto p-0 flex flex-col">
+          <DialogContent hideClose className="max-h-[90dvh] overflow-y-auto p-0 flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-ios-separator shrink-0">
               <div className="min-w-0">
