@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.44] - 2026-04-07
+
+- feat: rename all remaining homekit references to the-one-dashboard
+
 ## [1.0.43] - 2026-04-07
 
 - feat: new tiles, sidebar, camera, calendar, floorplan, query params
