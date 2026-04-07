@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Settings, Pencil, Check, Lightbulb, ToggleRight, Thermometer, Lock } from 'lucide-react'
+import { Settings, Pencil, Check, Lightbulb, ToggleRight, Thermometer, Lock, PanelLeft } from 'lucide-react'
 import { useHA } from '@/hooks/useHAClient'
 import { getDomain } from '@/lib/utils'
 import { cn } from '@/lib/utils'
@@ -52,9 +52,10 @@ interface StatusChip {
 
 interface HeaderProps {
   onSettingsClick: () => void
+  onSidebarToggle?: () => void
 }
 
-export function Header({ onSettingsClick }: HeaderProps) {
+export function Header({ onSettingsClick, onSidebarToggle }: HeaderProps) {
   const { status, locationName, entities, isEditMode, toggleEditMode } = useHA()
   const time = useTime()
 
@@ -97,6 +98,15 @@ export function Header({ onSettingsClick }: HeaderProps) {
           <p className="text-sm text-ios-secondary mt-0.5">{formatDate(new Date())}</p>
         </div>
         <div className="flex items-center gap-2 pt-1 shrink-0">
+          {onSidebarToggle && (
+            <button
+              onClick={onSidebarToggle}
+              className="p-2 rounded-full bg-ios-card text-ios-secondary hover:text-ios-label active:scale-95 transition-all"
+              aria-label="Toggle sidebar"
+            >
+              <PanelLeft className="w-4 h-4" />
+            </button>
+          )}
           <StatusDot status={status} />
           <span className="text-base font-semibold text-ios-label tabular-nums">{time}</span>
           <button

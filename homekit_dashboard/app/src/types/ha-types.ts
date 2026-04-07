@@ -110,6 +110,78 @@ export interface HassDeviceRegistryEntry {
   name_by_user: string | null
 }
 
+export interface WeatherAttributes {
+  friendly_name?: string
+  temperature?: number
+  temperature_unit?: string
+  humidity?: number
+  wind_speed?: number
+  wind_speed_unit?: string
+  pressure?: number
+  pressure_unit?: string
+  visibility?: number
+  visibility_unit?: string
+  precipitation_unit?: string
+  forecast?: WeatherForecast[]
+}
+
+export interface WeatherForecast {
+  datetime: string
+  condition: string
+  temperature?: number
+  templow?: number
+  precipitation?: number
+  precipitation_probability?: number
+  wind_speed?: number
+  wind_bearing?: number
+}
+
+export interface MediaPlayerAttributes {
+  friendly_name?: string
+  media_title?: string
+  media_artist?: string
+  media_album_name?: string
+  media_content_type?: string
+  media_duration?: number
+  media_position?: number
+  media_image_url?: string
+  entity_picture?: string
+  volume_level?: number          // 0.0–1.0
+  is_volume_muted?: boolean
+  source?: string
+  source_list?: string[]
+  media_player_thumbnail?: string
+  supported_features?: number
+  shuffle?: boolean
+  repeat?: string
+}
+
+export interface CameraAttributes {
+  friendly_name?: string
+  access_token?: string
+  entity_picture?: string
+  frontend_stream_type?: string
+  supported_features?: number
+}
+
+export interface CalendarAttributes {
+  friendly_name?: string
+  message?: string
+  all_day?: boolean
+  start_time?: string
+  end_time?: string
+  location?: string
+  description?: string
+}
+
+export interface CalendarEvent {
+  summary: string
+  start: { dateTime?: string; date?: string }
+  end: { dateTime?: string; date?: string }
+  description?: string
+  location?: string
+}
+
 export type ConnectionStatus =
   | 'disconnected'
   | 'connecting'

@@ -2,6 +2,7 @@ import { useState, useMemo, useRef } from 'react'
 import { Header } from './Header'
 import { RoomTabs } from './RoomTabs'
 import { TilesGrid } from './TilesGrid'
+import { Sidebar } from './Sidebar'
 import { SettingsPanel } from '@/components/settings/SettingsPanel'
 import { UserPicker } from './UserPicker'
 import { useHA } from '@/hooks/useHAClient'
@@ -363,8 +364,15 @@ function HomeView({ onShowSettings, onTabChange }: HomeViewProps) {
 
 export function Dashboard() {
   const { status, entities, resolveEntityArea, currentUserId, haUsers, selectUser } = useHA()
-  const [activeTab, setActiveTab] = useState('home')
+
+  // Read URL query params once on mount
+  const searchParams = useMemo(() => new URLSearchParams(window.location.search), [])
+  const initialView = searchParams.get('view') ?? 'home'
+  const hideMenu = searchParams.get('menu') === 'false'
+
+  const [activeTab, setActiveTab] = useState(initialView)
   const [showSettings, setShowSettings] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const filteredEntities = useMemo<HassEntity[]>(() => {
     if (activeTab === 'home') return []
@@ -382,19 +390,29 @@ export function Dashboard() {
   }
 
   return (
-    <div className="min-h-dvh max-w-screen-2xl mx-auto">
-      {/* Fallback picker: shown only when ingress auto-detection failed and there are multiple users */}
-      {status === 'connected' && currentUserId === null && haUsers.length > 1 && (
-        <UserPicker users={haUsers} onSelect={selectUser} />
-      )}
-      <Header onSettingsClick={() => setShowSettings(true)} />
-      <RoomTabs activeTab={activeTab} onTabChange={setActiveTab} />
-      {activeTab === 'home'
-        ? <HomeView onShowSettings={() => setShowSettings(true)} onTabChange={setActiveTab} />
-        : filteredEntities.length > 0
-          ? <TilesGrid entities={filteredEntities} contextId={activeTab} className="pt-3" />
-          : <EmptyState />
-      }
+    <div className="flex min-h-dvh max-w-screen-2xl mx-auto">
+      <Sidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        onNavigate={(tab) => { setActiveTab(tab); setSidebarOpen(false) }}
+      />
+      <div className="flex-1 min-w-0">
+        {/* Fallback picker: shown only when ingress auto-detection failed and there are multiple users */}
+        {status === 'connected' && currentUserId === null && haUsers.length > 1 && (
+          <UserPicker users={haUsers} onSelect={selectUser} />
+        )}
+        <Header
+          onSettingsClick={() => setShowSettings(true)}
+          onSidebarToggle={() => setSidebarOpen((v) => !v)}
+        />
+        {!hideMenu && <RoomTabs activeTab={activeTab} onTabChange={setActiveTab} />}
+        {activeTab === 'home'
+          ? <HomeView onShowSettings={() => setShowSettings(true)} onTabChange={setActiveTab} />
+          : filteredEntities.length > 0
+            ? <TilesGrid entities={filteredEntities} contextId={activeTab} className="pt-3" />
+            : <EmptyState />
+        }
+      </div>
     </div>
   )
 }

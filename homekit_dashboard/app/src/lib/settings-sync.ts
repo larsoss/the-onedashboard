@@ -5,6 +5,7 @@ import { getTileSizes, saveTileSizes, type EntityTileSizes } from './tile-sizes'
 import { getHiddenEntities, saveHiddenEntities } from './hidden-storage'
 import { getEntityOrder, saveEntityOrder, type EntityOrderMap } from './entity-order-storage'
 import { getPersonConfigs, savePersonConfigs, type PersonConfigMap } from './person-storage'
+import { getFloorplans, saveFloorplans, type FloorplanMap } from './floorplan-storage'
 
 export interface UserSettings {
   theme?: ThemeConfig
@@ -15,6 +16,7 @@ export interface UserSettings {
   hiddenEntities?: string[]
   entityOrder?: EntityOrderMap
   personConfigs?: PersonConfigMap
+  floorplans?: FloorplanMap
 }
 
 export function collectUserSettings(): UserSettings {
@@ -27,6 +29,7 @@ export function collectUserSettings(): UserSettings {
     hiddenEntities: getHiddenEntities(),
     entityOrder: getEntityOrder(),
     personConfigs: getPersonConfigs(),
+    floorplans: getFloorplans(),
   }
 }
 
@@ -40,6 +43,7 @@ export function applyServerSettings(s: UserSettings): void {
   if (s.hiddenEntities) saveHiddenEntities(s.hiddenEntities)
   if (s.entityOrder) saveEntityOrder(s.entityOrder)
   if (s.personConfigs) savePersonConfigs(s.personConfigs)
+  if (s.floorplans) saveFloorplans(s.floorplans)
 }
 
 /** Load settings from server for a given userId. Returns null on failure. */

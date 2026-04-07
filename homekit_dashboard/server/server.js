@@ -80,6 +80,42 @@ app.put('/dashboard-api/settings/:userId', (req, res) => {
   } catch (e) { res.status(500).json({ error: String(e) }) }
 })
 
+// Camera snapshot proxy (with auth injected server-side)
+app.get('/dashboard-api/camera/:entityId/snapshot', (req, res) => {
+  const entityId = req.params.entityId
+  const targetUrl = `${HA_API_URL}/camera_proxy/${entityId}`
+  const proxyReq = http.request(targetUrl, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${SUPERVISOR_TOKEN}` },
+  }, (proxyRes) => {
+    res.status(proxyRes.statusCode || 200)
+    const ct = proxyRes.headers['content-type']
+    if (ct) res.setHeader('Content-Type', ct)
+    res.setHeader('Cache-Control', 'no-store')
+    proxyRes.pipe(res)
+  })
+  proxyReq.on('error', (err) => res.status(502).json({ error: err.message }))
+  proxyReq.end()
+})
+
+// Camera stream proxy (HLS/MJPEG)
+app.get('/dashboard-api/camera/:entityId/stream', (req, res) => {
+  const entityId = req.params.entityId
+  const targetUrl = `${HA_API_URL}/camera_proxy_stream/${entityId}?token=${SUPERVISOR_TOKEN}`
+  const proxyReq = http.request(targetUrl, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${SUPERVISOR_TOKEN}` },
+  }, (proxyRes) => {
+    res.status(proxyRes.statusCode || 200)
+    Object.entries(proxyRes.headers).forEach(([k, v]) => {
+      if (v !== undefined) res.setHeader(k, v)
+    })
+    proxyRes.pipe(res)
+  })
+  proxyReq.on('error', (err) => res.status(502).json({ error: err.message }))
+  proxyReq.end()
+})
+
 // Fallback: serve React app for all other GET routes (SPA)
 app.get('*', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));

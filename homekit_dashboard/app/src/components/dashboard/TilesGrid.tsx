@@ -8,6 +8,13 @@ import { LockTile } from '@/components/tiles/LockTile'
 import { CoverTile } from '@/components/tiles/CoverTile'
 import { SensorTile } from '@/components/tiles/SensorTile'
 import { PersonTile } from '@/components/tiles/PersonTile'
+import { SceneTile } from '@/components/tiles/SceneTile'
+import { AutomationTile } from '@/components/tiles/AutomationTile'
+import { ScriptTile } from '@/components/tiles/ScriptTile'
+import { WeatherTile } from '@/components/tiles/WeatherTile'
+import { MediaPlayerTile } from '@/components/tiles/MediaPlayerTile'
+import { CameraTile } from '@/components/tiles/CameraTile'
+import { CalendarTile } from '@/components/tiles/CalendarTile'
 import { BaseTile } from '@/components/tiles/BaseTile'
 import { useHA } from '@/hooks/useHAClient'
 import { GRID_COLS } from '@/lib/theme-storage'
@@ -17,8 +24,14 @@ import { Activity, EyeOff, X, Heart, GripVertical } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const SUPPORTED_DOMAINS = new Set([
-  'light', 'switch', 'input_boolean', 'climate', 'lock', 'cover', 'sensor', 'binary_sensor', 'person',
+  'light', 'switch', 'input_boolean', 'climate', 'lock', 'cover',
+  'sensor', 'binary_sensor', 'person',
+  'scene', 'automation', 'script', 'weather',
+  'media_player', 'camera', 'calendar',
 ])
+
+// Domains that should be hidden when their entity is inactive (not in edit mode)
+const HIDE_WHEN_INACTIVE = new Set(['media_player'])
 
 const SPAN_OPTIONS: { span: TileSpan; label: string }[] = [
   { span: '1x1', label: '1×1' },
@@ -39,6 +52,13 @@ function Tile({ entity }: { entity: HassEntity }) {
     case 'sensor':
     case 'binary_sensor': return <SensorTile entityId={entity.entity_id} />
     case 'person':        return <PersonTile entityId={entity.entity_id} />
+    case 'scene':         return <SceneTile entityId={entity.entity_id} />
+    case 'automation':    return <AutomationTile entityId={entity.entity_id} />
+    case 'script':        return <ScriptTile entityId={entity.entity_id} />
+    case 'weather':       return <WeatherTile entityId={entity.entity_id} />
+    case 'media_player':  return <MediaPlayerTile entityId={entity.entity_id} />
+    case 'camera':        return <CameraTile entityId={entity.entity_id} />
+    case 'calendar':      return <CalendarTile entityId={entity.entity_id} />
     default:
       return (
         <BaseTile
@@ -182,10 +202,18 @@ export function TilesGrid({ entities, contextId, className }: TilesGridProps) {
   const [dragId, setDragId] = useState<string | null>(null)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
 
-  // Filter hidden + unsupported
-  const base = entities.filter(
-    (e) => SUPPORTED_DOMAINS.has(getDomain(e.entity_id)) && !hiddenEntities.includes(e.entity_id)
-  )
+  // Filter hidden + unsupported + inactive conditional domains (e.g. media_player when idle)
+  const base = entities.filter((e) => {
+    const domain = getDomain(e.entity_id)
+    if (!SUPPORTED_DOMAINS.has(domain)) return false
+    if (hiddenEntities.includes(e.entity_id)) return false
+    // Hide media_players when idle/off unless in edit mode
+    if (!isEditMode && HIDE_WHEN_INACTIVE.has(domain)) {
+      const inactive = ['idle', 'off', 'unavailable', 'unknown']
+      if (inactive.includes(e.state)) return false
+    }
+    return true
+  })
 
   // Apply stored order for this context
   const ordered = (() => {
