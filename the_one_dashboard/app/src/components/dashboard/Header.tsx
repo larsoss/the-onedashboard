@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Settings, Pencil, Check, Lightbulb, ToggleRight, Thermometer, Lock, PanelLeft } from 'lucide-react'
+import { Settings, Pencil, Check, Lightbulb, ToggleRight, Thermometer, Lock, PanelLeft, House } from 'lucide-react'
 import { useHA } from '@/hooks/useHAClient'
 import { getDomain } from '@/lib/utils'
 import { cn } from '@/lib/utils'
@@ -98,6 +98,17 @@ export function Header({ onSettingsClick, onSidebarToggle }: HeaderProps) {
           <p className="text-sm text-ios-secondary mt-0.5">{formatDate(new Date())}</p>
         </div>
         <div className="flex items-center gap-2 pt-1 shrink-0">
+          {/* Back to HA main menu — navigates parent frame to HA home */}
+          <button
+            onClick={() => {
+              try { window.parent.location.href = '/' } catch { window.location.href = '/' }
+            }}
+            className="p-2 rounded-full bg-ios-card text-ios-secondary hover:text-ios-label active:scale-95 transition-all"
+            aria-label="Terug naar Home Assistant"
+            title="Terug naar Home Assistant"
+          >
+            <House className="w-4 h-4" />
+          </button>
           {onSidebarToggle && (
             <button
               onClick={onSidebarToggle}

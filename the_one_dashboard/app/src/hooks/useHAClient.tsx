@@ -253,11 +253,13 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
   const saveEntityAreaOverrides = useCallback((overrides: EntityAreaOverrides) => {
     persistOverrides(overrides)
     setEntityAreaOverrides(overrides)
+    scheduleSyncToServer()
   }, [])
 
   const updateCustomAreas = useCallback((areas: CustomArea[]) => {
     persistCustomAreas(areas)
     setCustomAreas(areas)
+    scheduleSyncToServer()
   }, [])
 
   // Stable resolver: override → entity.area_id → device.area_id → null
@@ -364,6 +366,8 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
     setEntityTileSizesState(getTileSizes())
     setHiddenEntitiesState(getHiddenEntities())
     setEntityOrderState(getEntityOrder())
+    setEntityAreaOverrides(getEntityAreaOverrides())
+    setCustomAreas(getCustomAreas())
   }, [])
 
   // Auto-detect logged-in HA user via ingress header, fall back to stored ID
