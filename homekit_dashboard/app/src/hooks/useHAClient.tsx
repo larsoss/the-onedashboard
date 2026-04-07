@@ -366,12 +366,18 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
     setEntityOrderState(getEntityOrder())
   }, [])
 
-  // Auto-select previously stored user on mount
+  // Auto-detect logged-in HA user via ingress header, fall back to stored ID
   useEffect(() => {
-    const storedId = getStoredUserId()
-    if (storedId) {
-      selectUser(storedId).catch(console.error)
-    }
+    fetch('/dashboard-api/whoami')
+      .then(r => r.json())
+      .then(({ userId }: { userId: string | null }) => {
+        const id = userId || getStoredUserId()
+        if (id) selectUser(id).catch(console.error)
+      })
+      .catch(() => {
+        const storedId = getStoredUserId()
+        if (storedId) selectUser(storedId).catch(console.error)
+      })
   }, [selectUser])
 
   return (

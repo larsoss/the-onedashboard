@@ -381,21 +381,12 @@ export function Dashboard() {
     return <SettingsPanel onClose={() => setShowSettings(false)} />
   }
 
-  // Show user picker when user not yet selected and users loaded
-  if (status === 'connected' && currentUserId === null && haUsers.length > 0) {
-    return (
-      <>
-        <div className="min-h-dvh max-w-screen-2xl mx-auto">
-          <Header onSettingsClick={() => setShowSettings(true)} />
-          <RoomTabs activeTab={activeTab} onTabChange={setActiveTab} />
-        </div>
-        <UserPicker users={haUsers} onSelect={selectUser} />
-      </>
-    )
-  }
-
   return (
     <div className="min-h-dvh max-w-screen-2xl mx-auto">
+      {/* Fallback picker: shown only when ingress auto-detection failed and there are multiple users */}
+      {status === 'connected' && currentUserId === null && haUsers.length > 1 && (
+        <UserPicker users={haUsers} onSelect={selectUser} />
+      )}
       <Header onSettingsClick={() => setShowSettings(true)} />
       <RoomTabs activeTab={activeTab} onTabChange={setActiveTab} />
       {activeTab === 'home'

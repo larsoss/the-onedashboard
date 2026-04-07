@@ -57,6 +57,12 @@ const fs = require('fs');
 
 app.use('/dashboard-api', express.json({ limit: '2mb' }));
 
+// Return the HA user ID injected by the Supervisor ingress proxy
+app.get('/dashboard-api/whoami', (req, res) => {
+  const userId = req.headers['x-hass-user-id'] || null
+  res.json({ userId })
+})
+
 app.get('/dashboard-api/settings/:userId', (req, res) => {
   const safeId = req.params.userId.replace(/[^a-z0-9_-]/gi, '_').slice(0, 64)
   const file = path.join('/data', `user_settings_${safeId}.json`)
