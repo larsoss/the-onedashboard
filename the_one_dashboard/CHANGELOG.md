@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.46] - 2026-04-07
+
+- feat: live tile resize preview while dragging
+
 ## [1.0.44] - 2026-04-07
 
 - feat: rename all remaining homekit references to the-one-dashboard
