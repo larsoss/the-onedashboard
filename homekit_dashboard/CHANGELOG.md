@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.43] - 2026-04-07
+
+- feat: new tiles, sidebar, camera, calendar, floorplan, query params
+
 ## [1.0.42] - 2026-04-07
 
 - feat: auto-detect logged-in HA user via ingress header (X-Hass-User-ID)
