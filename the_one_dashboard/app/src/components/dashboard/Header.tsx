@@ -75,10 +75,15 @@ export function Header({ onSettingsClick, onSidebarToggle }: HeaderProps) {
       icon: <ToggleRight className="w-3 h-3" />, colorClass: 'bg-ios-blue/20 text-ios-blue',
     })
 
-    const climate = vals.filter((e) => getDomain(e.entity_id) === 'climate' && e.state !== 'off').length
-    if (climate > 0) chips.push({
-      count: climate, label: climate === 1 ? 'climate' : 'climates',
-      icon: <Thermometer className="w-3 h-3" />, colorClass: 'bg-ios-purple/20 text-ios-purple',
+    const ACTIVE_HVAC = new Set(['heat', 'cool', 'heat_cool', 'auto', 'fan_only', 'dry', 'on'])
+    const climate = vals.filter((e) => getDomain(e.entity_id) === 'climate' && ACTIVE_HVAC.has(e.state)).length
+    const climateTotal = vals.filter((e) => getDomain(e.entity_id) === 'climate').length
+    // Show chip when at least one is active, but display all if all are inactive
+    if (climateTotal > 0) chips.push({
+      count: climate > 0 ? climate : climateTotal,
+      label: (climate > 0 ? climate : climateTotal) === 1 ? 'climate' : 'climates',
+      icon: <Thermometer className="w-3 h-3" />,
+      colorClass: climate > 0 ? 'bg-ios-purple/20 text-ios-purple' : 'bg-white/10 text-ios-secondary',
     })
 
     const locked = vals.filter((e) => getDomain(e.entity_id) === 'lock' && e.state === 'locked').length

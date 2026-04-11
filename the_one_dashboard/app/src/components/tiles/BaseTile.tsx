@@ -55,6 +55,7 @@ export function BaseTile({
   const { theme } = useHA()
   const isGlass = theme.tileStyle === 'glass'
   const opacity = theme.tileOpacity / 100
+  const isCompact = theme.tileSize === 'compact'
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const didLongPress = useRef(false)
@@ -114,7 +115,8 @@ export function BaseTile({
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick?.() }}
       style={bgStyle}
       className={cn(
-        'relative rounded-2xl p-3 sm:p-4 flex flex-col justify-between h-full',
+        'relative rounded-2xl flex flex-col justify-between h-full',
+        isCompact ? 'p-2' : 'p-3 sm:p-4',
         'cursor-pointer select-none transition-all duration-150',
         'active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ios-blue',
         className
@@ -122,7 +124,10 @@ export function BaseTile({
     >
       {/* Top row: icon + active indicator */}
       <div className="flex items-start justify-between">
-        <div className={cn(ICON_SIZE_CLASS[theme.iconSize], isActive ? ACTIVE_ICON[colorKey] : 'text-ios-secondary')}>
+        <div className={cn(
+          isCompact ? 'w-5 h-5' : ICON_SIZE_CLASS[theme.iconSize],
+          isActive ? ACTIVE_ICON[colorKey] : 'text-ios-secondary'
+        )}>
           {icon}
         </div>
         {isActive && (

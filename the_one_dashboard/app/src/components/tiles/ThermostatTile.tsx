@@ -83,10 +83,9 @@ export function ThermostatTile({ entityId }: ThermostatTileProps) {
         activeColor={activeColor as 'amber' | 'blue' | 'purple'}
         icon={<IconComp className="w-full h-full" />}
         label={entityLabel(entityId, attrs.friendly_name)}
-        sublabel={currentTemp !== undefined ? `Now ${formatTemp(currentTemp, unit)}` : undefined}
         onClick={() => setOpen(true)}
       >
-        {/* Inline ±0.5° controls — tap buttons without opening the full dialog */}
+        {/* Inline ±0.5° controls — compact 2-line layout with target + current temp */}
         <div
           className="flex items-center justify-between gap-1"
           onPointerDown={(e) => e.stopPropagation()}
@@ -95,18 +94,25 @@ export function ThermostatTile({ entityId }: ThermostatTileProps) {
           <button
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); adjustTemp(-0.5) }}
-            className="w-7 h-7 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-white text-lg leading-none font-medium active:scale-90 transition-all shrink-0"
+            className="w-6 h-6 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-white text-base leading-none font-medium active:scale-90 transition-all shrink-0"
             aria-label="Decrease temperature"
           >
             −
           </button>
-          <span className="text-sm font-bold text-ios-label tabular-nums">
-            {formatTemp(targetTemp, unit)}
-          </span>
+          <div className="flex flex-col items-center leading-none gap-0.5">
+            <span className="text-sm font-bold text-ios-label tabular-nums">
+              {formatTemp(targetTemp, unit)}
+            </span>
+            {currentTemp !== undefined && (
+              <span className="text-[10px] text-ios-secondary tabular-nums">
+                {formatTemp(currentTemp, unit)}
+              </span>
+            )}
+          </div>
           <button
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); adjustTemp(0.5) }}
-            className="w-7 h-7 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-white text-lg leading-none font-medium active:scale-90 transition-all shrink-0"
+            className="w-6 h-6 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-white text-base leading-none font-medium active:scale-90 transition-all shrink-0"
             aria-label="Increase temperature"
           >
             +
