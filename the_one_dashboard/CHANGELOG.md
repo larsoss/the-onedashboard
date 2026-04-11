@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.54] - 2026-04-11
+
+- feat: translate all UI strings to system language (12 languages)
+
 ## [1.0.53] - 2026-04-11
 
 - fix: house button → home tab, remove room tabs, area card drag-resize
