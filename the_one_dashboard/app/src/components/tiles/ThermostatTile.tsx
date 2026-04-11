@@ -13,6 +13,7 @@ import { entityLabel, formatTemp } from '@/lib/utils'
 import { getIconByName } from '@/lib/icons'
 import type { ClimateAttributes } from '@/types/ha-types'
 import { cn } from '@/lib/utils'
+import { t, type TranslationKey } from '@/lib/i18n'
 
 const HVAC_COLORS: Record<string, string> = {
   heat:    'text-ios-amber',
@@ -24,14 +25,14 @@ const HVAC_COLORS: Record<string, string> = {
   dry:     'text-ios-teal',
 }
 
-const MODE_LABELS: Record<string, string> = {
-  heat:     'Heat',
-  cool:     'Cool',
-  heat_cool:'Heat/Cool',
-  auto:     'Auto',
-  fan_only: 'Fan',
-  dry:      'Dry',
-  off:      'Off',
+const MODE_LABEL_KEYS: Record<string, TranslationKey> = {
+  heat:     'hvac_heat',
+  cool:     'hvac_cool',
+  heat_cool:'hvac_heat_cool',
+  auto:     'hvac_auto',
+  fan_only: 'hvac_fan',
+  dry:      'hvac_dry',
+  off:      'hvac_off',
 }
 
 interface ThermostatTileProps {
@@ -87,9 +88,9 @@ export function ThermostatTile({ entityId }: ThermostatTileProps) {
       >
         {/* Inline ±0.5° controls — compact 2-line layout with target + current temp */}
         <div
+          data-no-tile-click
           className="flex items-center justify-between gap-1"
           onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => e.stopPropagation()}
         >
           <button
             onPointerDown={(e) => e.stopPropagation()}
@@ -126,7 +127,7 @@ export function ThermostatTile({ entityId }: ThermostatTileProps) {
 
           {/* Current temperature */}
           <div className="mt-4 text-center">
-            <p className="text-xs text-ios-secondary uppercase tracking-wide">Current</p>
+            <p className="text-xs text-ios-secondary uppercase tracking-wide">{t('current_temp')}</p>
             <p className="text-4xl font-thin text-ios-label mt-1">
               {formatTemp(currentTemp, unit)}
             </p>
@@ -142,7 +143,7 @@ export function ThermostatTile({ entityId }: ThermostatTileProps) {
             </button>
             <div className="text-center">
               <p className="text-5xl font-light text-ios-label">{formatTemp(targetTemp, unit)}</p>
-              <p className="text-xs text-ios-secondary mt-1">Target</p>
+              <p className="text-xs text-ios-secondary mt-1">{t('target_temp')}</p>
             </div>
             <button
               onClick={() => adjustTemp(0.5)}
@@ -155,7 +156,7 @@ export function ThermostatTile({ entityId }: ThermostatTileProps) {
           {/* Mode selector */}
           {modes.length > 0 && (
             <div className="mt-6">
-              <p className="text-xs text-ios-secondary uppercase tracking-wide mb-3">Mode</p>
+              <p className="text-xs text-ios-secondary uppercase tracking-wide mb-3">{t('mode')}</p>
               <div className="flex flex-wrap gap-2">
                 {modes.map((mode) => (
                   <button
@@ -168,7 +169,7 @@ export function ThermostatTile({ entityId }: ThermostatTileProps) {
                         : 'text-ios-secondary bg-ios-card border border-transparent hover:border-white/5'
                     )}
                   >
-                    {MODE_LABELS[mode] ?? mode}
+                    {MODE_LABEL_KEYS[mode] ? t(MODE_LABEL_KEYS[mode]) : mode}
                   </button>
                 ))}
               </div>
@@ -177,7 +178,7 @@ export function ThermostatTile({ entityId }: ThermostatTileProps) {
 
           <DialogClose asChild>
             <button className="mt-6 w-full py-3 rounded-2xl bg-ios-card-2 text-ios-label text-sm font-medium hover:bg-ios-separator transition-colors">
-              Done
+              {t('done')}
             </button>
           </DialogClose>
         </DialogContent>

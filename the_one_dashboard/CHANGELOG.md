@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.53] - 2026-04-11
+
+- fix: house button → home tab, remove room tabs, area card drag-resize
+
 ## [1.0.52] - 2026-04-11
 
 - fix: thermostat tile overflow + climate count incorrect

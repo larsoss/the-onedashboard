@@ -7,6 +7,7 @@ import { UserPicker } from './UserPicker'
 import { useHA } from '@/hooks/useHAClient'
 import { getDomain, entityLabel, cn } from '@/lib/utils'
 import { GRID_COLS, TILE_ROW_H } from '@/lib/theme-storage'
+import { t, tn } from '@/lib/i18n'
 import { SPAN_CLASSES, snapSpan, type TileSpan } from '@/lib/tile-sizes'
 import {
   Wifi, Activity, GripVertical, GripHorizontal, Star,
@@ -24,8 +25,8 @@ function ConnectingScreen() {
   return (
     <div className="flex flex-col items-center justify-center min-h-dvh text-ios-secondary">
       <Wifi className="w-12 h-12 mb-4 animate-pulse" />
-      <p className="text-base font-medium text-ios-label">Connecting to Home Assistant…</p>
-      <p className="text-sm mt-1">This may take a moment</p>
+      <p className="text-base font-medium text-ios-label">{t('connecting')}</p>
+      <p className="text-sm mt-1">{t('connecting_wait')}</p>
     </div>
   )
 }
@@ -34,10 +35,8 @@ function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center py-24 text-ios-secondary px-8 text-center">
       <Activity className="w-12 h-12 mb-4 opacity-40" />
-      <p className="text-base font-medium">No entities here</p>
-      <p className="text-sm mt-1 opacity-70">
-        Add entities to areas in Home Assistant, or use Settings to assign them
-      </p>
+      <p className="text-base font-medium">{t('no_entities')}</p>
+      <p className="text-sm mt-1 opacity-70">{t('no_entities_hint')}</p>
     </div>
   )
 }
@@ -103,9 +102,9 @@ function AddEntityModal({ areaId, areaName, onClose }: AddEntityModalProps) {
         {/* Header */}
         <div className="flex items-center justify-between px-4 pt-4 pb-2">
           <div>
-            <p className="text-sm font-bold text-ios-label">Add to {areaName}</p>
+            <p className="text-sm font-bold text-ios-label">{t('add_to_area', { area: areaName })}</p>
             {selected.size > 0 && (
-              <p className="text-xs text-ios-secondary">{selected.size} selected</p>
+              <p className="text-xs text-ios-secondary">{t('n_selected', { n: selected.size })}</p>
             )}
           </div>
           <div className="flex gap-2">
@@ -122,7 +121,7 @@ function AddEntityModal({ areaId, areaName, onClose }: AddEntityModalProps) {
             <input
               autoFocus
               type="text"
-              placeholder="Search entities…"
+              placeholder={t('search_entities')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="flex-1 bg-transparent text-sm text-ios-label placeholder:text-ios-secondary outline-none"
@@ -136,7 +135,7 @@ function AddEntityModal({ areaId, areaName, onClose }: AddEntityModalProps) {
         {/* List */}
         <div className="flex-1 overflow-y-auto px-4 pb-2 space-y-0.5">
           {available.length === 0 && (
-            <p className="text-center text-xs text-ios-secondary py-6">No entities available</p>
+            <p className="text-center text-xs text-ios-secondary py-6">{t('no_available')}</p>
           )}
           {available.map((e) => {
             const isSelected = selected.has(e.entity_id)
@@ -180,7 +179,9 @@ function AddEntityModal({ areaId, areaName, onClose }: AddEntityModalProps) {
               selected.size > 0 ? 'bg-ios-blue text-white' : 'bg-white/10 text-ios-secondary cursor-not-allowed'
             )}
           >
-            {selected.size > 0 ? `Add ${selected.size} entit${selected.size === 1 ? 'y' : 'ies'}` : 'Select entities'}
+            {selected.size > 0
+              ? t('add_n_entities', { n: selected.size, word: tn(selected.size, 'entity_word_one', 'entity_word_many') })
+              : t('select_entities')}
           </button>
         </div>
       </div>
@@ -207,7 +208,7 @@ function EditToolbar({ onDone, onAddEntity, lastHiddenLabel, onUndoHide }: EditT
           className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-ios-amber/20 text-ios-amber text-xs font-semibold flex-1 min-w-0"
         >
           <RotateCcw className="w-3.5 h-3.5 shrink-0" />
-          <span className="truncate">Undo hide "{lastHiddenLabel}"</span>
+          <span className="truncate">{t('undo_hide', { name: lastHiddenLabel })}</span>
         </button>
       )}
 
@@ -218,7 +219,7 @@ function EditToolbar({ onDone, onAddEntity, lastHiddenLabel, onUndoHide }: EditT
           className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 text-ios-label text-xs font-semibold"
         >
           <Plus className="w-3.5 h-3.5" />
-          Add
+          {t('add')}
         </button>
       )}
 
@@ -228,7 +229,7 @@ function EditToolbar({ onDone, onAddEntity, lastHiddenLabel, onUndoHide }: EditT
         className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-ios-green/90 text-white text-sm font-bold ml-auto"
       >
         <Check className="w-4 h-4" />
-        Done
+        {t('done')}
       </button>
     </div>
   )
@@ -386,8 +387,8 @@ function AreaCard({
           {areaName}
         </p>
         <p className="text-xs text-ios-secondary mt-0.5">
-          {entities.length} {entities.length === 1 ? 'device' : 'devices'}
-          {activeCount > 0 && ` · ${activeCount} on`}
+          {tn(entities.length, 'devices_one', 'devices_many')}
+          {activeCount > 0 && ` ${t('active_count', { n: activeCount })}`}
         </p>
       </div>
 
@@ -408,7 +409,7 @@ function AreaCard({
             onPointerDown={onResizePointerDown}
             onPointerMove={onResizePointerMove}
             onPointerUp={onResizePointerUp}
-            title="Sleep om te resizen"
+            title={t('drag_resize')}
           >
             <GripHorizontal className="w-3.5 h-3.5 text-white rotate-45" />
           </div>
@@ -489,7 +490,7 @@ function HomeView({ onShowSettings, onTabChange }: HomeViewProps) {
             onClick={onShowSettings}
             className="px-4 py-2 rounded-full bg-ios-blue/20 text-ios-blue text-sm font-medium"
           >
-            Open Settings to assign entities
+            {t('open_settings')}
           </button>
         </div>
       </div>
@@ -503,7 +504,7 @@ function HomeView({ onShowSettings, onTabChange }: HomeViewProps) {
         <div>
           <div className="flex items-center gap-1.5 px-4 pt-5 pb-2">
             <Star className="w-4 h-4 text-ios-amber fill-ios-amber" />
-            <h2 className="text-base font-bold text-ios-label">Favorites</h2>
+            <h2 className="text-base font-bold text-ios-label">{t('favorites')}</h2>
             <span className="text-xs text-ios-secondary ml-1">{favoriteEntities.length}</span>
           </div>
           <TilesGrid entities={favoriteEntities} contextId="favorites" />
@@ -515,7 +516,7 @@ function HomeView({ onShowSettings, onTabChange }: HomeViewProps) {
         <div>
           <div className="flex items-center gap-1.5 px-4 pt-5 pb-2">
             <Home className="w-4 h-4 text-ios-blue" />
-            <h2 className="text-base font-bold text-ios-label">People</h2>
+            <h2 className="text-base font-bold text-ios-label">{t('people')}</h2>
             <span className="text-xs text-ios-secondary ml-1">{personEntities.length}</span>
           </div>
           <TilesGrid entities={personEntities} contextId="people" />
@@ -527,7 +528,7 @@ function HomeView({ onShowSettings, onTabChange }: HomeViewProps) {
         <div>
           <div className="flex items-center gap-1.5 px-4 pt-5 pb-2">
             <Home className="w-4 h-4 text-ios-secondary" />
-            <h2 className="text-base font-bold text-ios-label">Rooms</h2>
+            <h2 className="text-base font-bold text-ios-label">{t('rooms')}</h2>
           </div>
           <div
             className={cn('grid gap-2 sm:gap-3 px-4', GRID_COLS[theme.tileSize])}

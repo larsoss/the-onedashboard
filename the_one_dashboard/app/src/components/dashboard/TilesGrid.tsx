@@ -22,6 +22,7 @@ import { SPAN_CLASSES, spanToUnits, unitsToSpan, type TileSpan } from '@/lib/til
 import { ICON_OPTIONS } from '@/lib/icons'
 import { Activity, EyeOff, X, Heart, GripVertical, GripHorizontal, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { t } from '@/lib/i18n'
 
 const SUPPORTED_DOMAINS = new Set([
   'light', 'switch', 'input_boolean', 'climate', 'lock', 'cover',
@@ -83,7 +84,7 @@ function IconPicker({ entityId, onClose }: IconPickerProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <p className="text-sm font-semibold text-ios-label">Choose Icon</p>
+          <p className="text-sm font-semibold text-ios-label">{t('choose_icon')}</p>
           <button onClick={onClose}><X className="w-4 h-4 text-ios-secondary" /></button>
         </div>
         <div className="grid grid-cols-6 gap-2">
@@ -112,7 +113,7 @@ function IconPicker({ entityId, onClose }: IconPickerProps) {
             onClick={() => { saveEntityIcon(entityId, null); onClose() }}
             className="mt-3 w-full py-2 rounded-xl text-xs text-ios-secondary bg-ios-card-2"
           >
-            Reset to default
+            {t('reset')}
           </button>
         )}
       </div>
@@ -218,19 +219,19 @@ function EditOverlay({ entityId, tileRef, currentSpan, onPreviewChange }: EditOv
             onClick={(e) => { e.stopPropagation(); setShowIconPicker(true) }}
             className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white/20 text-white hover:bg-white/30"
           >
-            Icon
+            {t('icon')}
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); toggleFavorite(entityId) }}
             className="px-2 py-1.5 rounded-lg text-xs font-medium bg-white/20 text-white hover:bg-white/30 flex items-center gap-1"
-            title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+            title={isFavorited ? t('rem_favorites') : t('add_favorites')}
           >
             <Heart className={cn('w-3 h-3', isFavorited ? 'fill-ios-red text-ios-red' : '')} />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); toggleHideEntity(entityId) }}
             className="px-2 py-1.5 rounded-lg text-xs font-medium bg-red-500/60 text-white hover:bg-red-500/80 flex items-center gap-1"
-            title="Hide from dashboard"
+            title={t('hide_entity')}
           >
             <EyeOff className="w-3 h-3" />
           </button>
@@ -247,7 +248,7 @@ function EditOverlay({ entityId, tileRef, currentSpan, onPreviewChange }: EditOv
           onPointerDown={onResizePointerDown}
           onPointerMove={onResizePointerMove}
           onPointerUp={onResizePointerUp}
-          title="Sleep om te resizen"
+          title={t('drag_resize')}
         >
           <GripHorizontal className="w-3.5 h-3.5 text-white rotate-45" />
         </div>
@@ -414,7 +415,7 @@ export function TilesGrid({ entities, contextId, className, onAddEntity }: Tiles
           )}
         >
           <Plus className="w-6 h-6" />
-          <span className="text-xs font-medium">Add entity</span>
+          <span className="text-xs font-medium">{t('add_entity')}</span>
         </button>
       )}
     </div>

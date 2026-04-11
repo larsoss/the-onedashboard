@@ -5,6 +5,7 @@ import { useHA } from '@/hooks/useHAClient'
 import { entityLabel } from '@/lib/utils'
 import { getIconByName } from '@/lib/icons'
 import { cn } from '@/lib/utils'
+import { t } from '@/lib/i18n'
 
 interface AutomationTileProps {
   entityId: string
@@ -42,11 +43,12 @@ export function AutomationTile({ entityId }: AutomationTileProps) {
       activeColor="amber"
       icon={icon}
       label={label}
-      sublabel={isEnabled ? 'Enabled' : 'Disabled'}
+      sublabel={isEnabled ? t('enabled') : t('disabled')}
       onClick={handleToggle}
     >
       {/* Trigger button — runs automation immediately */}
       <button
+        data-no-tile-click
         onClick={handleTrigger}
         className={cn(
           'self-end mt-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold transition-all',
@@ -56,7 +58,7 @@ export function AutomationTile({ entityId }: AutomationTileProps) {
             : 'bg-white/10 text-ios-secondary hover:bg-white/20'
         )}
       >
-        Run
+        {t('run')}
       </button>
     </BaseTile>
   )

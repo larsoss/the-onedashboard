@@ -7,14 +7,15 @@ import { useHA } from '@/hooks/useHAClient'
 import { getDomain, entityLabel } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import type { WeatherAttributes } from '@/types/ha-types'
+import { t, tn } from '@/lib/i18n'
 
 // Greeting based on hour
 function greeting(name: string): string {
   const h = new Date().getHours()
-  if (h < 5)  return `Goedenacht, ${name}`
-  if (h < 12) return `Goedemorgen, ${name}`
-  if (h < 18) return `Goedemiddag, ${name}`
-  return `Goedenavond, ${name}`
+  if (h < 5)  return `${t('good_night')}, ${name}`
+  if (h < 12) return `${t('good_morning')}, ${name}`
+  if (h < 18) return `${t('good_afternoon')}, ${name}`
+  return `${t('good_evening')}, ${name}`
 }
 
 function useClock() {
@@ -109,7 +110,7 @@ export function Sidebar({ open, onClose, onNavigate }: SidebarProps) {
       >
         {/* Close button (mobile) */}
         <div className="flex items-center justify-between px-4 pt-4 pb-2 lg:hidden">
-          <span className="text-xs font-semibold text-ios-secondary uppercase tracking-wider">Menu</span>
+          <span className="text-xs font-semibold text-ios-secondary uppercase tracking-wider">{t('toggle_sidebar')}</span>
           <button onClick={onClose}>
             <X className="w-4 h-4 text-ios-secondary" />
           </button>
@@ -134,7 +135,7 @@ export function Sidebar({ open, onClose, onNavigate }: SidebarProps) {
                 {typeof weatherAttrs.temperature === 'number' && (
                   <p className="text-xs text-ios-secondary">
                     {Math.round(weatherAttrs.temperature)}{weatherAttrs.temperature_unit ?? '°C'}
-                    {typeof weatherAttrs.humidity === 'number' && ` · ${Math.round(weatherAttrs.humidity)}% vocht`}
+                    {typeof weatherAttrs.humidity === 'number' && ` · ${Math.round(weatherAttrs.humidity)}% ${t('humidity')}`}
                   </p>
                 )}
               </div>
@@ -144,7 +145,7 @@ export function Sidebar({ open, onClose, onNavigate }: SidebarProps) {
           {/* Active devices */}
           {(lightsOn.length > 0 || switchesOn.length > 0 || coversOpen.length > 0) && (
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-ios-secondary uppercase tracking-wider">Actieve apparaten</p>
+              <p className="text-xs font-semibold text-ios-secondary uppercase tracking-wider">{t('active_devices')}</p>
               {lightsOn.length > 0 && (
                 <button
                   onClick={() => onNavigate?.('home')}
@@ -152,7 +153,7 @@ export function Sidebar({ open, onClose, onNavigate }: SidebarProps) {
                 >
                   <Lightbulb className="w-4 h-4 text-ios-amber shrink-0" />
                   <span className="text-sm text-ios-label">
-                    {lightsOn.length} {lightsOn.length === 1 ? 'lamp' : 'lampen'} aan
+                    {tn(lightsOn.length, 'lights_one', 'lights_many')}
                   </span>
                 </button>
               )}
@@ -163,7 +164,7 @@ export function Sidebar({ open, onClose, onNavigate }: SidebarProps) {
                 >
                   <ToggleRight className="w-4 h-4 text-ios-blue shrink-0" />
                   <span className="text-sm text-ios-label">
-                    {switchesOn.length} {switchesOn.length === 1 ? 'schakelaar' : 'schakelaars'} aan
+                    {tn(switchesOn.length, 'switches_one', 'switches_many')}
                   </span>
                 </button>
               )}
@@ -174,7 +175,7 @@ export function Sidebar({ open, onClose, onNavigate }: SidebarProps) {
                 >
                   <DoorOpen className="w-4 h-4 text-ios-teal shrink-0" />
                   <span className="text-sm text-ios-label">
-                    {coversOpen.length} {coversOpen.length === 1 ? 'screen' : 'screens'} open
+                    {tn(coversOpen.length, 'covers_open_one', 'covers_open_many')}
                   </span>
                 </button>
               )}
@@ -185,7 +186,7 @@ export function Sidebar({ open, onClose, onNavigate }: SidebarProps) {
           {notifications.length > 0 && (
             <div className="space-y-2">
               <p className="text-xs font-semibold text-ios-secondary uppercase tracking-wider">
-                Meldingen ({notifications.length})
+                {t('notifications_n', { n: notifications.length })}
               </p>
               {notifications.map((n) => {
                 const title = typeof n.attributes.title === 'string' ? n.attributes.title : entityLabel(n.entity_id)
@@ -214,7 +215,7 @@ export function Sidebar({ open, onClose, onNavigate }: SidebarProps) {
           {notifications.length === 0 && (
             <div className="flex items-center gap-2 text-ios-secondary">
               <BellOff className="w-4 h-4" />
-              <span className="text-xs">Geen meldingen</span>
+              <span className="text-xs">{t('no_notifications')}</span>
             </div>
           )}
         </div>

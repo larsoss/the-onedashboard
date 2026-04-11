@@ -72,7 +72,7 @@ export function MediaPlayerTile({ entityId }: MediaPlayerTileProps) {
         </div>
 
         {/* Controls */}
-        <div className="flex items-center justify-between gap-1">
+        <div data-no-tile-click className="flex items-center justify-between gap-1">
           <button
             onClick={(e) => { e.stopPropagation(); call('media_previous_track') }}
             className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all"

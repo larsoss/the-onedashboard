@@ -11,10 +11,10 @@ export async function fetchStates(): Promise<HassEntity[]> {
   return res.json() as Promise<HassEntity[]>
 }
 
-export async function fetchHAConfig(): Promise<{ location_name: string }> {
+export async function fetchHAConfig(): Promise<{ location_name: string; language?: string }> {
   const res = await fetch(`${apiBase()}/config`)
   if (!res.ok) throw new Error(`Failed to fetch config: ${res.status}`)
-  return res.json() as Promise<{ location_name: string }>
+  return res.json() as Promise<{ location_name: string; language?: string }>
 }
 
 /** Fetch upcoming events for a calendar entity (next N days) */

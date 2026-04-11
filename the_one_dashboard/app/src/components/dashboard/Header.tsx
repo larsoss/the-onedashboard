@@ -4,6 +4,7 @@ import { useHA } from '@/hooks/useHAClient'
 import { getDomain } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import type { ConnectionStatus } from '@/types/ha-types'
+import { t, tn } from '@/lib/i18n'
 
 function StatusDot({ status }: { status: ConnectionStatus }) {
   return (
@@ -45,7 +46,7 @@ function formatDate(d: Date): string {
 
 interface StatusChip {
   count: number
-  label: string
+  label: string  // already includes count (from tn())
   icon: React.ReactNode
   colorClass: string
 }
@@ -67,13 +68,13 @@ export function Header({ onSettingsClick, onSidebarToggle, onHomeClick, currentR
 
     const lights = vals.filter((e) => getDomain(e.entity_id) === 'light' && e.state === 'on').length
     if (lights > 0) chips.push({
-      count: lights, label: lights === 1 ? 'light' : 'lights',
+      count: lights, label: tn(lights, 'lights_one', 'lights_many'),
       icon: <Lightbulb className="w-3 h-3" />, colorClass: 'bg-ios-amber/20 text-ios-amber',
     })
 
     const switches = vals.filter((e) => ['switch', 'input_boolean'].includes(getDomain(e.entity_id)) && e.state === 'on').length
     if (switches > 0) chips.push({
-      count: switches, label: switches === 1 ? 'switch' : 'switches',
+      count: switches, label: tn(switches, 'switches_one', 'switches_many'),
       icon: <ToggleRight className="w-3 h-3" />, colorClass: 'bg-ios-blue/20 text-ios-blue',
     })
 
@@ -81,16 +82,19 @@ export function Header({ onSettingsClick, onSidebarToggle, onHomeClick, currentR
     const climate = vals.filter((e) => getDomain(e.entity_id) === 'climate' && ACTIVE_HVAC.has(e.state)).length
     const climateTotal = vals.filter((e) => getDomain(e.entity_id) === 'climate').length
     // Show chip when at least one is active, but display all if all are inactive
-    if (climateTotal > 0) chips.push({
-      count: climate > 0 ? climate : climateTotal,
-      label: (climate > 0 ? climate : climateTotal) === 1 ? 'climate' : 'climates',
-      icon: <Thermometer className="w-3 h-3" />,
-      colorClass: climate > 0 ? 'bg-ios-purple/20 text-ios-purple' : 'bg-white/10 text-ios-secondary',
-    })
+    if (climateTotal > 0) {
+      const n = climate > 0 ? climate : climateTotal
+      chips.push({
+        count: n,
+        label: tn(n, 'climates_one', 'climates_many'),
+        icon: <Thermometer className="w-3 h-3" />,
+        colorClass: climate > 0 ? 'bg-ios-purple/20 text-ios-purple' : 'bg-white/10 text-ios-secondary',
+      })
+    }
 
     const locked = vals.filter((e) => getDomain(e.entity_id) === 'lock' && e.state === 'locked').length
     if (locked > 0) chips.push({
-      count: locked, label: locked === 1 ? 'lock' : 'locks',
+      count: locked, label: tn(locked, 'locks_one', 'locks_many'),
       icon: <Lock className="w-3 h-3" />, colorClass: 'bg-ios-red/20 text-ios-red',
     })
 
@@ -131,8 +135,8 @@ export function Header({ onSettingsClick, onSidebarToggle, onHomeClick, currentR
                 ? 'bg-ios-blue/20 text-ios-blue'
                 : 'bg-ios-card text-ios-secondary hover:text-ios-label'
             )}
-            aria-label="Home"
-            title="Home"
+            aria-label={t('home')}
+            title={t('home')}
           >
             <House className="w-4 h-4" />
           </button>
@@ -140,7 +144,7 @@ export function Header({ onSettingsClick, onSidebarToggle, onHomeClick, currentR
             <button
               onClick={onSidebarToggle}
               className="p-2 rounded-full bg-ios-card text-ios-secondary hover:text-ios-label active:scale-95 transition-all"
-              aria-label="Toggle sidebar"
+              aria-label={t('toggle_sidebar')}
             >
               <PanelLeft className="w-4 h-4" />
             </button>
@@ -155,14 +159,14 @@ export function Header({ onSettingsClick, onSidebarToggle, onHomeClick, currentR
                 ? 'bg-ios-blue text-white'
                 : 'bg-ios-card text-ios-secondary hover:text-ios-label'
             )}
-            aria-label={isEditMode ? 'Done editing' : 'Edit tiles'}
+            aria-label={isEditMode ? t('done_editing') : t('edit_tiles')}
           >
             {isEditMode ? <Check className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
           </button>
           <button
             onClick={onSettingsClick}
             className="p-2 rounded-full bg-ios-card text-ios-secondary hover:text-ios-label active:scale-95 transition-all"
-            aria-label="Settings"
+            aria-label={t('settings')}
           >
             <Settings className="w-4 h-4" />
           </button>
@@ -178,7 +182,7 @@ export function Header({ onSettingsClick, onSidebarToggle, onHomeClick, currentR
               className={cn('flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium', chip.colorClass)}
             >
               {chip.icon}
-              <span>{chip.count} {chip.label}</span>
+              <span>{chip.label}</span>
             </div>
           ))}
         </div>

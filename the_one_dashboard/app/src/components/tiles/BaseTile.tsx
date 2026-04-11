@@ -74,7 +74,10 @@ export function BaseTile({
     if (timerRef.current) clearTimeout(timerRef.current)
   }, [])
 
-  const handleClick = useCallback(() => {
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    // Don't fire tile action if the click came from an inner interactive element
+    // that has [data-no-tile-click] (e.g. inline temperature controls)
+    if ((e.target as HTMLElement).closest('[data-no-tile-click]')) return
     if (!didLongPress.current) onClick?.()
     didLongPress.current = false
   }, [onClick])
@@ -111,7 +114,7 @@ export function BaseTile({
       onPointerUp={cancelPress}
       onPointerLeave={cancelPress}
       onPointerCancel={cancelPress}
-      onClick={handleClick}
+      onClick={(e) => handleClick(e)}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick?.() }}
       style={bgStyle}
       className={cn(

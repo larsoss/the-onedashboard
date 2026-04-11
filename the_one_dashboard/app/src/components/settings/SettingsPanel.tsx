@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Slider } from '@/components/ui/slider'
 import { cn } from '@/lib/utils'
 import { ICON_OPTIONS, getIconByName } from '@/lib/icons'
+import { t, tn } from '@/lib/i18n'
 import {
   BG_PREVIEW,
   accentHex,
@@ -95,8 +96,8 @@ function EntityPicker({ areaName, assignedIds, onSave, onClose }: EntityPickerPr
     <Dialog open onOpenChange={(open) => { if (!open) onClose() }}>
       <DialogContent className="max-h-[80dvh] flex flex-col p-0 overflow-hidden">
         <div className="px-5 pt-5 pb-3 border-b border-ios-separator">
-          <DialogTitle>Edit: {areaName}</DialogTitle>
-          <p className="text-xs text-ios-secondary mt-0.5">{selected.size} entities selected</p>
+          <DialogTitle>{t('edit_area_title', { area: areaName })}</DialogTitle>
+          <p className="text-xs text-ios-secondary mt-0.5">{t('n_ent_selected', { n: selected.size })}</p>
         </div>
 
         <div className="px-4 py-2 border-b border-ios-separator">
@@ -105,7 +106,7 @@ function EntityPicker({ areaName, assignedIds, onSave, onClose }: EntityPickerPr
             <input
               autoFocus
               type="text"
-              placeholder="Search entities…"
+              placeholder={t('search_entities')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="flex-1 bg-transparent text-ios-label text-sm outline-none placeholder:text-ios-secondary"
@@ -120,7 +121,7 @@ function EntityPicker({ areaName, assignedIds, onSave, onClose }: EntityPickerPr
 
         <div className="flex-1 overflow-y-auto">
           {filtered.length === 0 ? (
-            <p className="text-center text-ios-secondary text-sm py-10">No entities found</p>
+            <p className="text-center text-ios-secondary text-sm py-10">{t('no_ent_found')}</p>
           ) : (
             filtered.map((entity) => {
               const isChecked = selected.has(entity.entity_id)
@@ -159,7 +160,7 @@ function EntityPicker({ areaName, assignedIds, onSave, onClose }: EntityPickerPr
             onClick={() => onSave([...selected])}
             className="w-full py-3 rounded-2xl bg-ios-blue text-white text-sm font-semibold hover:bg-ios-blue/90 active:scale-95 transition-all"
           >
-            Save
+            {t('save')}
           </button>
         </div>
       </DialogContent>
@@ -180,11 +181,11 @@ function NewAreaDialog({
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onClose() }}>
       <DialogContent>
-        <DialogTitle>New Area</DialogTitle>
+        <DialogTitle>{t('new_area')}</DialogTitle>
         <input
           autoFocus
           type="text"
-          placeholder="Area name…"
+          placeholder={t('area_name_ph')}
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && name.trim()) onSave(name.trim()) }}
@@ -195,14 +196,14 @@ function NewAreaDialog({
             onClick={onClose}
             className="flex-1 py-3 rounded-2xl bg-ios-card-2 text-ios-secondary text-sm font-medium"
           >
-            Cancel
+            {t('cancel')}
           </button>
           <button
             onClick={() => { if (name.trim()) onSave(name.trim()) }}
             disabled={!name.trim()}
             className="flex-1 py-3 rounded-2xl bg-ios-blue text-white text-sm font-semibold disabled:opacity-40 active:scale-95 transition-all"
           >
-            Add
+            {t('add')}
           </button>
         </div>
       </DialogContent>
@@ -231,9 +232,9 @@ function IconPickerDialog({
     <Dialog open onOpenChange={(open) => { if (!open) onClose() }}>
       <DialogContent className="max-h-[80dvh] flex flex-col p-0 overflow-hidden">
         <div className="px-5 pt-5 pb-3 border-b border-ios-separator">
-          <DialogTitle>Choose Icon</DialogTitle>
+          <DialogTitle>{t('choose_icon')}</DialogTitle>
           <p className="text-xs text-ios-secondary mt-0.5">
-            {selected ? `Selected: ${selected}` : 'Tap an icon to select'}
+            {selected ? t('icon_selected', { name: selected }) : t('icon_tap_hint')}
           </p>
         </div>
 
@@ -268,13 +269,13 @@ function IconPickerDialog({
             onClick={() => { saveEntityIcon(entityId, null); onClose() }}
             className="px-4 py-3 rounded-2xl bg-ios-card-2 text-ios-secondary text-sm font-medium"
           >
-            Reset
+            {t('reset')}
           </button>
           <button
             onClick={handleSave}
             className="flex-1 py-3 rounded-2xl bg-ios-blue text-white text-sm font-semibold active:scale-95 transition-all"
           >
-            Save
+            {t('save')}
           </button>
         </div>
       </DialogContent>
@@ -285,9 +286,9 @@ function IconPickerDialog({
 // ── Appearance Section ──────────────────────────────────────────────────────
 
 
-const TILE_STYLE_OPTIONS: Array<{ id: TileStyle; label: string; desc: string }> = [
-  { id: 'glass', label: 'Glass', desc: 'Frosted glass' },
-  { id: 'solid', label: 'Solid', desc: 'Classic solid' },
+const TILE_STYLE_OPTIONS: () => Array<{ id: TileStyle; label: string; desc: string }> = () => [
+  { id: 'glass', label: t('glass'), desc: t('glass_desc') },
+  { id: 'solid', label: t('solid'), desc: t('solid_desc') },
 ]
 
 const BG_OPTIONS: Array<{ id: BgStyle; label: string }> = [
@@ -297,15 +298,15 @@ const BG_OPTIONS: Array<{ id: BgStyle; label: string }> = [
   { id: 'slate', label: 'Slate' },
 ]
 
-const TILE_SIZE_OPTIONS: Array<{ id: TileSize; label: string; desc: string }> = [
-  { id: 'compact', label: 'Compact', desc: 'More tiles' },
-  { id: 'normal',  label: 'Normal',  desc: 'Default' },
-  { id: 'large',   label: 'Large',   desc: 'Fewer tiles' },
+const TILE_SIZE_OPTIONS: () => Array<{ id: TileSize; label: string; desc: string }> = () => [
+  { id: 'compact', label: t('size_compact'), desc: t('size_compact_desc') },
+  { id: 'normal',  label: t('size_normal'),  desc: t('size_normal_desc') },
+  { id: 'large',   label: t('size_large'),   desc: t('size_large_desc') },
 ]
 
-const TILE_SHAPE_OPTIONS: Array<{ id: TileShape; label: string }> = [
-  { id: 'square', label: 'Square' },
-  { id: 'rect',   label: 'Rectangle' },
+const TILE_SHAPE_OPTIONS: () => Array<{ id: TileShape; label: string }> = () => [
+  { id: 'square', label: t('shape_square') },
+  { id: 'rect',   label: t('shape_rect') },
 ]
 
 const ICON_SIZE_OPTIONS: Array<{ id: IconSize; label: string }> = [
@@ -364,7 +365,7 @@ function AppearanceSection() {
       {/* Accent color — hue bar */}
       <div className="bg-ios-card rounded-2xl p-4">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-semibold text-ios-label">Accent Color</p>
+          <p className="text-sm font-semibold text-ios-label">{t('accent_color')}</p>
           <div
             className="w-6 h-6 rounded-full border-2 border-white/20 shrink-0"
             style={{ background: accentHex(hue) }}
@@ -397,28 +398,28 @@ function AppearanceSection() {
       {/* Tile style, shape, size, icon */}
       <div className="bg-ios-card rounded-2xl p-4 space-y-4">
         <OptionRow
-          label="Tile Style"
-          options={TILE_STYLE_OPTIONS}
+          label={t('tile_style')}
+          options={TILE_STYLE_OPTIONS()}
           value={theme.tileStyle}
           onChange={(v) => setTheme({ ...theme, tileStyle: v })}
           accentHue={hue}
         />
         <OptionRow
-          label="Tile Shape"
-          options={TILE_SHAPE_OPTIONS}
+          label={t('tile_shape')}
+          options={TILE_SHAPE_OPTIONS()}
           value={theme.tileShape}
           onChange={(v) => setTheme({ ...theme, tileShape: v })}
           accentHue={hue}
         />
         <OptionRow
-          label="Tile Size"
-          options={TILE_SIZE_OPTIONS}
+          label={t('tile_size')}
+          options={TILE_SIZE_OPTIONS()}
           value={theme.tileSize}
           onChange={(v) => setTheme({ ...theme, tileSize: v })}
           accentHue={hue}
         />
         <OptionRow
-          label="Icon Size"
+          label={t('icon_size')}
           options={ICON_SIZE_OPTIONS}
           value={theme.iconSize}
           onChange={(v) => setTheme({ ...theme, iconSize: v })}
@@ -429,7 +430,7 @@ function AppearanceSection() {
       {/* Opacity */}
       <div className="bg-ios-card rounded-2xl p-4">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-semibold text-ios-label">Tile Opacity</p>
+          <p className="text-sm font-semibold text-ios-label">{t('tile_opacity')}</p>
           <span className="text-sm font-medium" style={{ color: accentHex(hue) }}>{theme.tileOpacity}%</span>
         </div>
         <Slider
@@ -440,14 +441,14 @@ function AppearanceSection() {
           onValueChange={([v]) => setTheme({ ...theme, tileOpacity: v })}
         />
         <div className="flex justify-between mt-1">
-          <span className="text-[11px] text-ios-secondary">Transparent</span>
-          <span className="text-[11px] text-ios-secondary">Opaque</span>
+          <span className="text-[11px] text-ios-secondary">{t('transparent')}</span>
+          <span className="text-[11px] text-ios-secondary">{t('opaque')}</span>
         </div>
       </div>
 
       {/* Background */}
       <div className="bg-ios-card rounded-2xl p-4">
-        <p className="text-sm font-semibold text-ios-label mb-3">Background</p>
+        <p className="text-sm font-semibold text-ios-label mb-3">{t('background')}</p>
         <div className="grid grid-cols-4 gap-2">
           {BG_OPTIONS.map((opt) => {
             const isSelected = theme.bgStyle === opt.id
@@ -623,7 +624,7 @@ export function SettingsPanel({ onClose }: Props) {
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-xl font-bold text-ios-label flex-1">Settings</h1>
+          <h1 className="text-xl font-bold text-ios-label flex-1">{t('settings')}</h1>
           {section === 'areas' && (
             <button
               onClick={() => setShowNewArea(true)}
@@ -631,7 +632,7 @@ export function SettingsPanel({ onClose }: Props) {
               style={{ background: accentHsla(hue, 0.2), color: accentHex(hue) }}
             >
               <Plus className="w-4 h-4" />
-              New Area
+              {t('new_area')}
             </button>
           )}
         </div>
@@ -650,7 +651,7 @@ export function SettingsPanel({ onClose }: Props) {
               )}
               style={section === s ? { background: accentHsla(hue, 0.2) } : undefined}
             >
-              {s}
+              {s === 'areas' ? t('areas_tab') : t('appearance_tab')}
             </button>
           ))}
         </div>
@@ -662,7 +663,7 @@ export function SettingsPanel({ onClose }: Props) {
               <Search className="w-4 h-4 text-ios-secondary shrink-0" />
               <input
                 type="text"
-                placeholder="Search areas or entities…"
+                placeholder={t('search_areas')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="flex-1 bg-transparent text-ios-label text-sm outline-none placeholder:text-ios-secondary"
@@ -683,12 +684,12 @@ export function SettingsPanel({ onClose }: Props) {
         <div className="px-4 pb-8 space-y-3 mt-3">
           {filteredAreas.length === 0 && !q ? (
             <div className="text-center py-12 text-ios-secondary">
-              <p className="text-base font-medium">No areas found</p>
-              <p className="text-sm mt-1 opacity-70">Add a custom area or create areas in Home Assistant</p>
+              <p className="text-base font-medium">{t('no_areas')}</p>
+              <p className="text-sm mt-1 opacity-70">{t('no_areas_hint')}</p>
             </div>
           ) : filteredAreas.length === 0 && q ? (
             <div className="text-center py-12 text-ios-secondary">
-              <p className="text-base font-medium">No results for "{search}"</p>
+              <p className="text-base font-medium">{t('no_results', { q: search })}</p>
             </div>
           ) : (
             filteredAreas.map((area) => {
@@ -700,7 +701,7 @@ export function SettingsPanel({ onClose }: Props) {
                     <div className="flex-1">
                       <p className="text-sm font-semibold text-ios-label">{area.name}</p>
                       <p className="text-xs text-ios-secondary mt-0.5">
-                        {areaEntities.length} {areaEntities.length === 1 ? 'entity' : 'entities'}
+                        {tn(areaEntities.length, 'entities_one', 'entities_many')}
                       </p>
                     </div>
                     <button
@@ -709,7 +710,7 @@ export function SettingsPanel({ onClose }: Props) {
                       style={{ color: accentHex(hue) }}
                     >
                       <Pencil className="w-3 h-3" />
-                      Edit
+                      {t('edit_btn')}
                     </button>
                     {custom && (
                       <button
@@ -723,7 +724,7 @@ export function SettingsPanel({ onClose }: Props) {
 
                   {areaEntities.length === 0 ? (
                     <p className="px-4 py-3 text-xs text-ios-secondary italic">
-                      No entities — tap Edit to assign some
+                      {t('no_area_entities')}
                     </p>
                   ) : (
                     <div>
@@ -761,7 +762,7 @@ export function SettingsPanel({ onClose }: Props) {
                             </div>
                             <button
                               onClick={() => toggleFavorite(eid)}
-                              title={favorites.includes(eid) ? 'Remove from favorites' : 'Add to favorites'}
+                              title={favorites.includes(eid) ? t('rem_favorites') : t('add_favorites')}
                               className={cn(
                                 'p-1 transition-colors',
                                 favorites.includes(eid) ? 'text-ios-amber' : 'text-ios-secondary hover:text-ios-amber'
@@ -794,8 +795,8 @@ export function SettingsPanel({ onClose }: Props) {
               <div className="px-4 py-3 border-b border-ios-separator flex items-center gap-2">
                 <EyeOff className="w-4 h-4 text-ios-secondary" />
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-ios-label">Hidden in dashboard</p>
-                  <p className="text-xs text-ios-secondary mt-0.5">{hiddenEntities.length} hidden</p>
+                  <p className="text-sm font-semibold text-ios-label">{t('hidden_section')}</p>
+                  <p className="text-xs text-ios-secondary mt-0.5">{t('hidden_count', { n: hiddenEntities.length })}</p>
                 </div>
               </div>
               {filteredHidden.map((eid) => {
@@ -815,12 +816,11 @@ export function SettingsPanel({ onClose }: Props) {
                     </div>
                     <button
                       onClick={() => toggleHideEntity(eid)}
-                      title="Unhide"
                       className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors"
                       style={{ background: accentHsla(hue, 0.2), color: accentHex(hue) }}
                     >
                       <Eye className="w-3 h-3" />
-                      Show
+                      {t('show')}
                     </button>
                   </div>
                 )
@@ -832,8 +832,8 @@ export function SettingsPanel({ onClose }: Props) {
           {filteredUnassigned.length > 0 && (
             <div className="bg-ios-card rounded-2xl overflow-hidden mt-4">
               <div className="px-4 py-3 border-b border-ios-separator">
-                <p className="text-sm font-semibold text-ios-label">Unassigned</p>
-                <p className="text-xs text-ios-secondary mt-0.5">{unassigned.length} entities not in any area</p>
+                <p className="text-sm font-semibold text-ios-label">{t('unassigned')}</p>
+                <p className="text-xs text-ios-secondary mt-0.5">{t('unassigned_hint', { n: unassigned.length })}</p>
               </div>
               {filteredUnassigned.map((eid) => {
                 const entity = entities[eid]
@@ -867,7 +867,7 @@ export function SettingsPanel({ onClose }: Props) {
                     </div>
                     <button
                       onClick={() => toggleFavorite(eid)}
-                      title={favorites.includes(eid) ? 'Remove from favorites' : 'Add to favorites'}
+                      title={favorites.includes(eid) ? t('rem_favorites') : t('add_favorites')}
                       className={cn(
                         'p-1 transition-colors',
                         favorites.includes(eid) ? 'text-ios-amber' : 'text-ios-secondary hover:text-ios-amber'

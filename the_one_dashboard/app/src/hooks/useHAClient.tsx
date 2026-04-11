@@ -56,6 +56,7 @@ import type { CustomArea, EntityAreaOverrides } from '@/lib/area-storage'
 import { getStoredUserId, storeUserId } from '@/components/dashboard/UserPicker'
 import { setCurrentUserId, scheduleSyncToServer } from '@/lib/user-context'
 import { loadServerSettings, applyServerSettings } from '@/lib/settings-sync'
+import { setLocale } from '@/lib/i18n'
 
 interface HAContextValue {
   status: ConnectionStatus
@@ -188,7 +189,10 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
           .catch(console.error)
 
         fetchHAConfig()
-          .then((cfg) => setLocationName(cfg.location_name))
+          .then((cfg) => {
+            setLocationName(cfg.location_name)
+            if (cfg.language) setLocale(cfg.language)
+          })
           .catch(() => undefined)
 
         client.getAreas()
