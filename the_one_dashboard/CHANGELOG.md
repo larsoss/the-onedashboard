@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.51] - 2026-04-11
+
+- feat: add search bar to settings areas panel
+
 ## [1.0.50] - 2026-04-11
 
 - feat: easier dashboard editing — jiggle, add-entity, edit toolbar
