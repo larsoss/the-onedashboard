@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.52] - 2026-04-11
+
+- fix: thermostat tile overflow + climate count incorrect
+
 ## [1.0.51] - 2026-04-11
 
 - feat: add search bar to settings areas panel
