@@ -287,8 +287,9 @@ export function PersonTile({ entityId }: PersonTileProps) {
     ? `${Math.round(proxRaw)} ${(proxEntity!.attributes.unit_of_measurement as string) || 'km'}`
     : null
 
-  // Steps
-  const stepsNum = stepsEntity ? Math.round(parseFloat(stepsEntity.state)) : null
+  // Steps — guard against NaN when sensor returns 'unavailable' or non-numeric
+  const stepsRaw = stepsEntity ? parseFloat(stepsEntity.state) : NaN
+  const stepsNum = !isNaN(stepsRaw) ? Math.round(stepsRaw) : null
 
   // Activity
   const activityState = activityEntity?.state ?? ''

@@ -54,9 +54,12 @@ export function SensorTile({ entityId }: SensorTileProps) {
   const isBinary = entityId.startsWith('binary_sensor.')
   const isActive = isBinary && entity.state === 'on'
 
+  const numericVal = parseFloat(entity.state)
+  const isNumeric = !isBinary && !isNaN(numericVal)
+
   const valueDisplay = isBinary
     ? entity.state === 'on' ? 'On' : 'Off'
-    : `${entity.state}${unit ? ' ' + unit : ''}`
+    : `${entity.state}${unit ? '\u202f' + unit : ''}`
 
   const CustomIconComp = entityIcons[entityId] ? getIconByName(entityIcons[entityId]) : null
   const icon = CustomIconComp
@@ -69,7 +72,22 @@ export function SensorTile({ entityId }: SensorTileProps) {
       activeColor={isBinary ? 'blue' : 'none'}
       icon={icon}
       label={label}
-      sublabel={valueDisplay}
-    />
+    >
+      {/* Large value display — much easier to read at a glance */}
+      <div className="flex-1 flex items-center">
+        {isNumeric ? (
+          <div className="flex items-baseline gap-0.5 leading-none">
+            <span className="text-xl font-bold text-ios-label tabular-nums">
+              {Number.isInteger(numericVal) ? numericVal : numericVal.toFixed(1)}
+            </span>
+            {unit && (
+              <span className="text-xs text-ios-secondary font-medium">{unit}</span>
+            )}
+          </div>
+        ) : (
+          <span className="text-sm font-semibold text-ios-label truncate">{valueDisplay}</span>
+        )}
+      </div>
+    </BaseTile>
   )
 }

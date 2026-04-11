@@ -315,8 +315,23 @@ export function LightTile({ entityId }: LightTileProps) {
       label={entityLabel(entityId, attrs.friendly_name)}
       sublabel={sublabel}
       onClick={hasColor ? openColorDialog : () => callService('light', isOn ? 'turn_off' : 'turn_on', {}, entityId)}
-      onLongPress={hasColor ? undefined : handleLongPress}
-    />
+      onLongPress={hasColor ? openColorDialog : handleLongPress}
+    >
+      {/* Brightness bar — visible when light is on and brightness is known */}
+      {isOn && attrs.brightness !== undefined && (
+        <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{
+              width: `${currentBrightness}%`,
+              background: tintRgb
+                ? `rgba(${tintRgb}, 0.85)`
+                : 'rgba(255,159,10,0.85)',
+            }}
+          />
+        </div>
+      )}
+    </BaseTile>
   )
 
   // Color lights → Dialog

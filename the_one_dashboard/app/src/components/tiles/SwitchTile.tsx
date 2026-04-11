@@ -3,7 +3,7 @@ import { ToggleRight, ToggleLeft } from 'lucide-react'
 import { BaseTile } from './BaseTile'
 import { useEntity } from '@/hooks/useEntities'
 import { useHA } from '@/hooks/useHAClient'
-import { entityLabel, getDomain } from '@/lib/utils'
+import { entityLabel, getDomain, relativeTime } from '@/lib/utils'
 import { getIconByName } from '@/lib/icons'
 
 interface SwitchTileProps {
@@ -34,13 +34,16 @@ export function SwitchTile({ entityId }: SwitchTileProps) {
       ? <ToggleRight className="w-full h-full" />
       : <ToggleLeft className="w-full h-full" />
 
+  const when = relativeTime(entity.last_changed)
+  const sublabel = `${isOn ? 'On' : 'Off'}${when ? ' · ' + when : ''}`
+
   return (
     <BaseTile
       isActive={isOn}
       activeColor="blue"
       icon={icon}
       label={label}
-      sublabel={isOn ? 'On' : 'Off'}
+      sublabel={sublabel}
       onClick={handleToggle}
     />
   )
