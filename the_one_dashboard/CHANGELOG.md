@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.50] - 2026-04-11
+
+- feat: easier dashboard editing — jiggle, add-entity, edit toolbar
+
 ## [1.0.49] - 2026-04-11
 
 - perf: pre-build frontend to drastically speed up HA add-on updates
