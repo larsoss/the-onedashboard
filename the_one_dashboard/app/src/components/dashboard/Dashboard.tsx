@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { Header } from './Header'
 import { RoomTabs } from './RoomTabs'
 import { TilesGrid } from './TilesGrid'
@@ -6,15 +6,14 @@ import { Sidebar } from './Sidebar'
 import { SettingsPanel } from '@/components/settings/SettingsPanel'
 import { UserPicker } from './UserPicker'
 import { useHA } from '@/hooks/useHAClient'
-import { getDomain } from '@/lib/utils'
+import { getDomain, entityLabel, cn } from '@/lib/utils'
 import { GRID_COLS } from '@/lib/theme-storage'
 import { SPAN_CLASSES, type TileSpan } from '@/lib/tile-sizes'
 import {
   Wifi, Activity, GripVertical, Star,
   Home, Sofa, BedDouble, ChefHat, Bath, Car, Flower2, Tv, Dumbbell,
-  Lightbulb, Thermometer,
+  Lightbulb, Thermometer, Check, Plus, RotateCcw, Search, X,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import type { HassEntity } from '@/types/ha-types'
 import type { LucideIcon } from 'lucide-react'
 
@@ -47,6 +46,198 @@ function EmptyState() {
       <p className="text-sm mt-1 opacity-70">
         Add entities to areas in Home Assistant, or use Settings to assign them
       </p>
+    </div>
+  )
+}
+
+const ALL_TILE_DOMAINS = new Set([
+  'light', 'switch', 'input_boolean', 'climate', 'lock', 'cover',
+  'sensor', 'binary_sensor', 'person', 'scene', 'automation', 'script',
+  'weather', 'media_player', 'camera', 'calendar',
+])
+
+// ── Add-entity modal (scoped to one area) ────────────────────────────────────
+
+interface AddEntityModalProps {
+  areaId: string
+  areaName: string
+  onClose: () => void
+}
+
+function AddEntityModal({ areaId, areaName, onClose }: AddEntityModalProps) {
+  const { entities, resolveEntityArea, entityAreaOverrides, saveEntityAreaOverrides } = useHA()
+  const [search, setSearch] = useState('')
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+
+  const available = useMemo(() => {
+    const q = search.toLowerCase()
+    return Object.values(entities)
+      .filter((e) => {
+        if (!ALL_TILE_DOMAINS.has(getDomain(e.entity_id))) return false
+        if (resolveEntityArea(e.entity_id) === areaId) return false
+        if (!q) return true
+        const lbl = entityLabel(e.entity_id, e.attributes.friendly_name).toLowerCase()
+        return lbl.includes(q) || e.entity_id.toLowerCase().includes(q)
+      })
+      .sort((a, b) =>
+        entityLabel(a.entity_id, a.attributes.friendly_name)
+          .localeCompare(entityLabel(b.entity_id, b.attributes.friendly_name))
+      )
+  }, [entities, resolveEntityArea, areaId, search])
+
+  const toggle = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const handleSave = () => {
+    if (selected.size === 0) { onClose(); return }
+    const next = { ...entityAreaOverrides }
+    selected.forEach((id) => { next[id] = areaId })
+    saveEntityAreaOverrides(next)
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" onClick={onClose}>
+      <div
+        className="bg-ios-card rounded-t-2xl sm:rounded-2xl w-full max-w-sm max-h-[75dvh] flex flex-col overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 pt-4 pb-2">
+          <div>
+            <p className="text-sm font-bold text-ios-label">Add to {areaName}</p>
+            {selected.size > 0 && (
+              <p className="text-xs text-ios-secondary">{selected.size} selected</p>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <button onClick={onClose} className="p-1.5 rounded-lg bg-white/10 text-ios-secondary">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="px-4 pb-2">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10">
+            <Search className="w-4 h-4 text-ios-secondary shrink-0" />
+            <input
+              autoFocus
+              type="text"
+              placeholder="Search entities…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="flex-1 bg-transparent text-sm text-ios-label placeholder:text-ios-secondary outline-none"
+            />
+            {search && (
+              <button onClick={() => setSearch('')}><X className="w-3.5 h-3.5 text-ios-secondary" /></button>
+            )}
+          </div>
+        </div>
+
+        {/* List */}
+        <div className="flex-1 overflow-y-auto px-4 pb-2 space-y-0.5">
+          {available.length === 0 && (
+            <p className="text-center text-xs text-ios-secondary py-6">No entities available</p>
+          )}
+          {available.map((e) => {
+            const isSelected = selected.has(e.entity_id)
+            return (
+              <button
+                key={e.entity_id}
+                onClick={() => toggle(e.entity_id)}
+                className={cn(
+                  'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors',
+                  isSelected ? 'bg-ios-blue/20' : 'hover:bg-white/10'
+                )}
+              >
+                <div className={cn(
+                  'w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors',
+                  isSelected ? 'border-ios-blue bg-ios-blue' : 'border-white/30'
+                )}>
+                  {isSelected && <Check className="w-3 h-3 text-white" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-ios-label truncate">
+                    {entityLabel(e.entity_id, e.attributes.friendly_name)}
+                  </p>
+                  <p className="text-xs text-ios-secondary truncate">{e.entity_id}</p>
+                </div>
+                <span className={cn(
+                  'text-xs px-1.5 py-0.5 rounded-md shrink-0',
+                  e.state === 'on' || e.state === 'home' ? 'bg-ios-green/20 text-ios-green' : 'bg-white/10 text-ios-secondary'
+                )}>{e.state}</span>
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Footer */}
+        <div className="px-4 pb-4 pt-2 border-t border-white/10">
+          <button
+            onClick={handleSave}
+            disabled={selected.size === 0}
+            className={cn(
+              'w-full py-3 rounded-xl text-sm font-semibold transition-colors',
+              selected.size > 0 ? 'bg-ios-blue text-white' : 'bg-white/10 text-ios-secondary cursor-not-allowed'
+            )}
+          >
+            {selected.size > 0 ? `Add ${selected.size} entit${selected.size === 1 ? 'y' : 'ies'}` : 'Select entities'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Edit mode bottom toolbar ──────────────────────────────────────────────────
+
+interface EditToolbarProps {
+  onDone: () => void
+  onAddEntity?: () => void
+  lastHiddenLabel?: string
+  onUndoHide?: () => void
+}
+
+function EditToolbar({ onDone, onAddEntity, lastHiddenLabel, onUndoHide }: EditToolbarProps) {
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-40 flex items-center gap-2 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-ios-card/80 backdrop-blur-xl border-t border-white/10">
+      {/* Undo hide — only when available */}
+      {onUndoHide && lastHiddenLabel && (
+        <button
+          onClick={onUndoHide}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-ios-amber/20 text-ios-amber text-xs font-semibold flex-1 min-w-0"
+        >
+          <RotateCcw className="w-3.5 h-3.5 shrink-0" />
+          <span className="truncate">Undo hide "{lastHiddenLabel}"</span>
+        </button>
+      )}
+
+      {/* Add entity — only when in a room context */}
+      {onAddEntity && (
+        <button
+          onClick={onAddEntity}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 text-ios-label text-xs font-semibold"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          Add
+        </button>
+      )}
+
+      {/* Done */}
+      <button
+        onClick={onDone}
+        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-ios-green/90 text-white text-sm font-bold ml-auto"
+      >
+        <Check className="w-4 h-4" />
+        Done
+      </button>
     </div>
   )
 }
@@ -363,7 +554,11 @@ function HomeView({ onShowSettings, onTabChange }: HomeViewProps) {
 // ── Dashboard ────────────────────────────────────────────────────────────────
 
 export function Dashboard() {
-  const { status, entities, resolveEntityArea, currentUserId, haUsers, selectUser } = useHA()
+  const {
+    status, entities, resolveEntityArea, currentUserId, haUsers, selectUser,
+    isEditMode, toggleEditMode, hiddenEntities, toggleHideEntity,
+    haAreas, customAreas,
+  } = useHA()
 
   // Read URL query params once on mount
   const searchParams = useMemo(() => new URLSearchParams(window.location.search), [])
@@ -373,6 +568,45 @@ export function Dashboard() {
   const [activeTab, setActiveTab] = useState(initialView)
   const [showSettings, setShowSettings] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [showAddModal, setShowAddModal] = useState(false)
+
+  // Undo-hide: track the last entity that was newly hidden while in edit mode
+  const prevHiddenRef = useRef<string[]>(hiddenEntities)
+  const [lastHiddenId, setLastHiddenId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!isEditMode) {
+      setLastHiddenId(null)
+      prevHiddenRef.current = hiddenEntities
+      return
+    }
+    const prev = prevHiddenRef.current
+    const newlyHidden = hiddenEntities.find((id) => !prev.includes(id))
+    if (newlyHidden) setLastHiddenId(newlyHidden)
+    prevHiddenRef.current = hiddenEntities
+  }, [hiddenEntities, isEditMode])
+
+  const handleUndoHide = () => {
+    if (!lastHiddenId) return
+    toggleHideEntity(lastHiddenId)
+    setLastHiddenId(null)
+  }
+
+  // Resolve area name for the active tab
+  const activeAreaName = useMemo(() => {
+    if (activeTab === 'home') return ''
+    const ha = haAreas.find((a) => a.area_id === activeTab)
+    if (ha) return ha.name
+    const custom = customAreas.find((a) => a.area_id === activeTab)
+    return custom?.name ?? activeTab
+  }, [activeTab, haAreas, customAreas])
+
+  // Last hidden entity label (for undo button)
+  const lastHiddenLabel = useMemo(() => {
+    if (!lastHiddenId) return undefined
+    const e = entities[lastHiddenId]
+    return entityLabel(lastHiddenId, e?.attributes.friendly_name)
+  }, [lastHiddenId, entities])
 
   const filteredEntities = useMemo<HassEntity[]>(() => {
     if (activeTab === 'home') return []
@@ -389,6 +623,9 @@ export function Dashboard() {
     return <SettingsPanel onClose={() => setShowSettings(false)} />
   }
 
+  // Whether we're viewing a specific room (not home) — enables Add Entity
+  const isRoomView = activeTab !== 'home'
+
   return (
     <div className="flex min-h-dvh max-w-screen-2xl mx-auto">
       <Sidebar
@@ -396,7 +633,7 @@ export function Dashboard() {
         onClose={() => setSidebarOpen(false)}
         onNavigate={(tab) => { setActiveTab(tab); setSidebarOpen(false) }}
       />
-      <div className="flex-1 min-w-0">
+      <div className={cn('flex-1 min-w-0', isEditMode && 'pb-20')}>
         {/* Fallback picker: shown only when ingress auto-detection failed and there are multiple users */}
         {status === 'connected' && currentUserId === null && haUsers.length > 1 && (
           <UserPicker users={haUsers} onSelect={selectUser} />
@@ -408,11 +645,36 @@ export function Dashboard() {
         {!hideMenu && <RoomTabs activeTab={activeTab} onTabChange={setActiveTab} />}
         {activeTab === 'home'
           ? <HomeView onShowSettings={() => setShowSettings(true)} onTabChange={setActiveTab} />
-          : filteredEntities.length > 0
-            ? <TilesGrid entities={filteredEntities} contextId={activeTab} className="pt-3" />
-            : <EmptyState />
+          : <TilesGrid
+              entities={filteredEntities}
+              contextId={activeTab}
+              className="pt-3"
+              onAddEntity={isEditMode && isRoomView ? () => setShowAddModal(true) : undefined}
+            />
         }
+        {activeTab === 'home' && filteredEntities.length === 0 && activeTab !== 'home' && (
+          <EmptyState />
+        )}
       </div>
+
+      {/* Edit mode floating toolbar */}
+      {isEditMode && (
+        <EditToolbar
+          onDone={toggleEditMode}
+          onAddEntity={isRoomView ? () => setShowAddModal(true) : undefined}
+          lastHiddenLabel={lastHiddenLabel}
+          onUndoHide={lastHiddenId ? handleUndoHide : undefined}
+        />
+      )}
+
+      {/* Add entity modal */}
+      {showAddModal && isRoomView && (
+        <AddEntityModal
+          areaId={activeTab}
+          areaName={activeAreaName}
+          onClose={() => setShowAddModal(false)}
+        />
+      )}
     </div>
   )
 }

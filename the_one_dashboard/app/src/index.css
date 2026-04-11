@@ -40,6 +40,20 @@
   }
 }
 
+/* ── Edit mode jiggle (iOS-style wiggle) ────────────────────────────────── */
+@keyframes tile-jiggle {
+  0%   { transform: rotate(-0.45deg) scale(0.985); }
+  100% { transform: rotate( 0.45deg) scale(0.985); }
+}
+.tile-edit-mode {
+  animation: tile-jiggle 0.18s ease-in-out infinite alternate;
+  transform-origin: center;
+  will-change: transform;
+}
+.tile-edit-mode:nth-child(2n)   { animation-delay: 0.06s; }
+.tile-edit-mode:nth-child(3n)   { animation-delay: 0.12s; }
+.tile-edit-mode:nth-child(4n)   { animation-delay: 0.03s; }
+
 /* ── Glassmorphism tile classes ─────────────────────────────────────────── */
 @layer components {
   .tile-glass {

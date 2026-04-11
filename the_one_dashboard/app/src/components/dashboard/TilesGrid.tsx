@@ -20,7 +20,7 @@ import { useHA } from '@/hooks/useHAClient'
 import { GRID_COLS, TILE_ROW_H } from '@/lib/theme-storage'
 import { SPAN_CLASSES, spanToUnits, unitsToSpan, type TileSpan } from '@/lib/tile-sizes'
 import { ICON_OPTIONS } from '@/lib/icons'
-import { Activity, EyeOff, X, Heart, GripVertical, GripHorizontal } from 'lucide-react'
+import { Activity, EyeOff, X, Heart, GripVertical, GripHorizontal, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const SUPPORTED_DOMAINS = new Set([
@@ -279,6 +279,8 @@ function TileWrapper({ entity, span, isEditMode, isDragging, isDragOver, isFavor
   // previewSpan is lifted here so the grid cell itself resizes during drag
   const [previewSpan, setPreviewSpan] = useState<TileSpan | null>(null)
   const activeSpan = previewSpan ?? span
+  // Jiggle only when in edit mode and not actively dragging or resizing
+  const jiggle = isEditMode && !isDragging && !previewSpan
 
   return (
     <div
@@ -297,6 +299,7 @@ function TileWrapper({ entity, span, isEditMode, isDragging, isDragOver, isFavor
         isDragOver && 'ring-2 ring-ios-blue ring-offset-1 ring-offset-transparent rounded-2xl',
         // Blue ring while resizing to show preview
         previewSpan && previewSpan !== span && 'ring-2 ring-ios-blue/70 rounded-2xl',
+        jiggle && 'tile-edit-mode',
       )}
     >
       <Tile entity={entity} />
@@ -319,9 +322,10 @@ interface TilesGridProps {
   entities: HassEntity[]
   contextId?: string
   className?: string
+  onAddEntity?: () => void
 }
 
-export function TilesGrid({ entities, contextId, className }: TilesGridProps) {
+export function TilesGrid({ entities, contextId, className, onAddEntity }: TilesGridProps) {
   const { theme, isEditMode, entityTileSizes, hiddenEntities, entityOrder, setContextEntityOrder, favorites } = useHA()
   const [dragId, setDragId] = useState<string | null>(null)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
@@ -366,7 +370,9 @@ export function TilesGrid({ entities, contextId, className }: TilesGridProps) {
     setDragOverId(null)
   }
 
-  if (ordered.length === 0) return null
+  const showAddTile = isEditMode && !!onAddEntity
+
+  if (ordered.length === 0 && !showAddTile) return null
 
   return (
     <div
@@ -395,6 +401,22 @@ export function TilesGrid({ entities, contextId, className }: TilesGridProps) {
           />
         )
       })}
+
+      {/* Add-entity tile — only in edit mode */}
+      {showAddTile && (
+        <button
+          onClick={onAddEntity}
+          className={cn(
+            'relative rounded-2xl flex flex-col items-center justify-center gap-1.5',
+            'border-2 border-dashed border-white/20 text-white/40',
+            'hover:border-white/40 hover:text-white/70 transition-colors',
+            SPAN_CLASSES['1x1'],
+          )}
+        >
+          <Plus className="w-6 h-6" />
+          <span className="text-xs font-medium">Add entity</span>
+        </button>
+      )}
     </div>
   )
 }
