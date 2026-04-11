@@ -1,2 +1,3 @@
 node_modules/
-dist/
+# dist/ is intentionally tracked — pre-built and committed so HA doesn't
+# have to compile on every update (drastically reduces install time).
