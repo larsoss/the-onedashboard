@@ -12,14 +12,15 @@ import { cn } from '@/lib/utils'
 import { ICON_OPTIONS, getIconByName } from '@/lib/icons'
 import { t, tn } from '@/lib/i18n'
 import {
-  BG_PREVIEW,
   accentHex,
   accentHsla,
+  COLOR_MOODS,
+  type ColorMood,
   type TileStyle,
-  type BgStyle,
   type TileSize,
   type TileShape,
   type IconSize,
+  type ThemeConfig,
 } from '@/lib/theme-storage'
 import type { CustomArea, EntityAreaOverrides } from '@/lib/area-storage'
 
@@ -285,18 +286,65 @@ function IconPickerDialog({
 
 // ── Appearance Section ──────────────────────────────────────────────────────
 
-
 const TILE_STYLE_OPTIONS: () => Array<{ id: TileStyle; label: string; desc: string }> = () => [
   { id: 'glass', label: t('glass'), desc: t('glass_desc') },
   { id: 'solid', label: t('solid'), desc: t('solid_desc') },
 ]
 
-const BG_OPTIONS: Array<{ id: BgStyle; label: string }> = [
-  { id: 'dark',  label: 'Dark'  },
-  { id: 'black', label: 'Black' },
-  { id: 'navy',  label: 'Navy'  },
-  { id: 'slate', label: 'Slate' },
-]
+// ── Mood Picker ─────────────────────────────────────────────────────────────
+
+interface MoodPickerProps {
+  theme: ThemeConfig
+  onApply: (mood: ColorMood) => void
+}
+
+function MoodPicker({ theme, onApply }: MoodPickerProps) {
+  return (
+    <div className="bg-ios-card rounded-2xl p-4">
+      <p className="text-sm font-semibold text-ios-label mb-3">Color Mood</p>
+      <div className="grid grid-cols-2 gap-2">
+        {COLOR_MOODS.map((mood) => {
+          const isActive = theme.moodId === mood.id
+          return (
+            <button
+              key={mood.id}
+              onClick={() => onApply(mood)}
+              className={cn(
+                'flex flex-col items-start gap-2 p-3 rounded-xl transition-all text-left',
+                isActive
+                  ? 'ring-2 ring-white/60 bg-white/10'
+                  : 'bg-ios-card-2/60 hover:bg-ios-card-2 active:scale-95'
+              )}
+            >
+              {/* Swatches */}
+              <div className="flex gap-1">
+                {mood.swatches.map((color, i) => (
+                  <div
+                    key={i}
+                    className="w-6 h-6 rounded-lg shrink-0 shadow-sm"
+                    style={{ background: color }}
+                  />
+                ))}
+              </div>
+              {/* Labels */}
+              <div>
+                <p className={cn(
+                  'text-xs font-semibold leading-tight',
+                  isActive ? 'text-ios-label' : 'text-ios-secondary'
+                )}>
+                  {mood.name}
+                </p>
+                <p className="text-[10px] text-ios-secondary mt-0.5 leading-tight">
+                  {mood.desc}
+                </p>
+              </div>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
 const TILE_SIZE_OPTIONS: () => Array<{ id: TileSize; label: string; desc: string }> = () => [
   { id: 'compact', label: t('size_compact'), desc: t('size_compact_desc') },
@@ -360,9 +408,23 @@ function AppearanceSection() {
   const { theme, setTheme } = useHA()
   const hue = theme.accent
 
+  const applyMood = (mood: ColorMood) => {
+    setTheme({
+      ...theme,
+      accent: mood.accent,
+      bgStyle: mood.bgStyle,
+      tileStyle: mood.tileStyle,
+      tileOpacity: mood.tileOpacity,
+      moodId: mood.id,
+    })
+  }
+
   return (
     <div className="px-4 pb-8 space-y-4">
-      {/* Accent color — hue bar */}
+      {/* Color Mood picker — replaces Background + Accent preset */}
+      <MoodPicker theme={theme} onApply={applyMood} />
+
+      {/* Fine-tune: accent hue */}
       <div className="bg-ios-card rounded-2xl p-4">
         <div className="flex items-center justify-between mb-3">
           <p className="text-sm font-semibold text-ios-label">{t('accent_color')}</p>
@@ -381,16 +443,12 @@ function AppearanceSection() {
             max={360}
             step={1}
             value={hue}
-            onChange={(e) => setTheme({ ...theme, accent: Number(e.target.value) })}
+            onChange={(e) => setTheme({ ...theme, accent: Number(e.target.value), moodId: undefined })}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           />
-          {/* Thumb indicator */}
           <div
             className="absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full border-2 border-white shadow-md pointer-events-none transition-all"
-            style={{
-              left: `calc(${(hue / 360) * 100}% - 10px)`,
-              background: accentHex(hue),
-            }}
+            style={{ left: `calc(${(hue / 360) * 100}% - 10px)`, background: accentHex(hue) }}
           />
         </div>
       </div>
@@ -401,7 +459,7 @@ function AppearanceSection() {
           label={t('tile_style')}
           options={TILE_STYLE_OPTIONS()}
           value={theme.tileStyle}
-          onChange={(v) => setTheme({ ...theme, tileStyle: v })}
+          onChange={(v) => setTheme({ ...theme, tileStyle: v, moodId: undefined })}
           accentHue={hue}
         />
         <OptionRow
@@ -438,36 +496,11 @@ function AppearanceSection() {
           max={100}
           step={5}
           value={[theme.tileOpacity]}
-          onValueChange={([v]) => setTheme({ ...theme, tileOpacity: v })}
+          onValueChange={([v]) => setTheme({ ...theme, tileOpacity: v, moodId: undefined })}
         />
         <div className="flex justify-between mt-1">
           <span className="text-[11px] text-ios-secondary">{t('transparent')}</span>
           <span className="text-[11px] text-ios-secondary">{t('opaque')}</span>
-        </div>
-      </div>
-
-      {/* Background */}
-      <div className="bg-ios-card rounded-2xl p-4">
-        <p className="text-sm font-semibold text-ios-label mb-3">{t('background')}</p>
-        <div className="grid grid-cols-4 gap-2">
-          {BG_OPTIONS.map((opt) => {
-            const isSelected = theme.bgStyle === opt.id
-            return (
-              <button
-                key={opt.id}
-                onClick={() => setTheme({ ...theme, bgStyle: opt.id })}
-                className={cn(
-                  'aspect-video rounded-xl flex items-end p-1.5 transition-all',
-                  isSelected ? 'ring-2 ring-white/60' : 'opacity-70 hover:opacity-100'
-                )}
-                style={{ background: BG_PREVIEW[opt.id] }}
-              >
-                <span className="text-[11px] text-white/80 font-medium leading-none">
-                  {opt.label}
-                </span>
-              </button>
-            )
-          })}
         </div>
       </div>
     </div>

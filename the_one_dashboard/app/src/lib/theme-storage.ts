@@ -1,5 +1,5 @@
 export type TileStyle = 'glass' | 'solid'
-export type BgStyle = 'dark' | 'black' | 'navy' | 'slate'
+export type BgStyle = 'dark' | 'black' | 'navy' | 'slate' | 'warm' | 'purple' | 'forest'
 export type TileSize = 'compact' | 'normal' | 'large'
 export type TileShape = 'square' | 'rect'
 export type IconSize = 'small' | 'medium' | 'large'
@@ -13,6 +13,7 @@ export interface ThemeConfig {
   tileShape: TileShape
   iconSize: IconSize
   tileOpacity: number   // 10–100
+  moodId?: string       // currently active mood preset (undefined = custom)
 }
 
 export const DEFAULT_THEME: ThemeConfig = {
@@ -23,7 +24,82 @@ export const DEFAULT_THEME: ThemeConfig = {
   tileShape: 'square',
   iconSize: 'medium',
   tileOpacity: 80,
+  moodId: 'ios-dark',
 }
+
+// ── Color Moods ────────────────────────────────────────────────────────────────
+
+export interface ColorMood {
+  id: string
+  name: string
+  desc: string
+  /** 4–5 preview swatch colors (CSS color strings) */
+  swatches: string[]
+  /** Theme values applied when this mood is selected */
+  accent: number
+  bgStyle: BgStyle
+  tileStyle: TileStyle
+  tileOpacity: number
+}
+
+export const COLOR_MOODS: ColorMood[] = [
+  {
+    id: 'ios-dark',
+    name: 'iOS Dark',
+    desc: 'Classic · Dark · Balanced',
+    swatches: ['#0A84FF', '#30D158', '#FF9F0A', '#3A3A3C', '#1C1C1E'],
+    accent: 211, bgStyle: 'dark', tileStyle: 'glass', tileOpacity: 80,
+  },
+  {
+    id: 'warm-neutrals',
+    name: 'Warm Neutrals',
+    desc: 'Cozy · Amber · Warm',
+    swatches: ['#FF9F0A', '#D4874A', '#A06030', '#3D2010', '#1A0D05'],
+    accent: 35, bgStyle: 'warm', tileStyle: 'glass', tileOpacity: 75,
+  },
+  {
+    id: 'moody-dark',
+    name: 'Moody Dark',
+    desc: 'Dark · Artistic · Luxury',
+    swatches: ['#BF5AF2', '#9B3FCC', '#6B1F99', '#2D0D54', '#110520'],
+    accent: 280, bgStyle: 'purple', tileStyle: 'glass', tileOpacity: 70,
+  },
+  {
+    id: 'clean-bright',
+    name: 'Clean & Bright',
+    desc: 'Clean · Distinct · Trustworthy',
+    swatches: ['#E5E5EA', '#AEAEB2', '#636366', '#3A3A3C', '#1C1C1E'],
+    accent: 211, bgStyle: 'slate', tileStyle: 'solid', tileOpacity: 100,
+  },
+  {
+    id: 'ocean',
+    name: 'Ocean',
+    desc: 'Deep · Calm · Fresh',
+    swatches: ['#5AC8FA', '#0A84FF', '#0055CC', '#002255', '#000F2B'],
+    accent: 200, bgStyle: 'navy', tileStyle: 'glass', tileOpacity: 80,
+  },
+  {
+    id: 'midnight',
+    name: 'Midnight',
+    desc: 'Minimal · Focused · Pure',
+    swatches: ['#6E7FF3', '#4455EE', '#2233CC', '#111133', '#000000'],
+    accent: 240, bgStyle: 'black', tileStyle: 'glass', tileOpacity: 65,
+  },
+  {
+    id: 'forest',
+    name: 'Forest',
+    desc: 'Natural · Fresh · Calm',
+    swatches: ['#30D158', '#1DB954', '#0F7A38', '#073D18', '#021508'],
+    accent: 142, bgStyle: 'forest', tileStyle: 'glass', tileOpacity: 80,
+  },
+  {
+    id: 'sunset',
+    name: 'Sunset',
+    desc: 'Bold · Warm · Energetic',
+    swatches: ['#FF453A', '#FF6B35', '#FF9F0A', '#661100', '#2A0500'],
+    accent: 15, bgStyle: 'warm', tileStyle: 'glass', tileOpacity: 80,
+  },
+]
 
 /** Named hue values for backward compat with old stored strings */
 const LEGACY_HUE: Record<string, number> = {
@@ -69,18 +145,23 @@ export function saveTheme(t: ThemeConfig): void {
 
 /** Background CSS values per bgStyle */
 export const BG_VALUES: Record<BgStyle, string> = {
-  dark:  'radial-gradient(ellipse at 25% 0%, #2a2a3c 0%, #1C1C1E 55%, #111111 100%)',
-  black: '#000000',
-  navy:  'linear-gradient(145deg, #0d1b2a 0%, #1a2540 60%, #0a1628 100%)',
-  slate: 'linear-gradient(145deg, #1e293b 0%, #0f172a 100%)',
+  dark:   'radial-gradient(ellipse at 25% 0%, #2a2a3c 0%, #1C1C1E 55%, #111111 100%)',
+  black:  '#000000',
+  navy:   'linear-gradient(145deg, #0d1b2a 0%, #1a2540 60%, #0a1628 100%)',
+  slate:  'linear-gradient(145deg, #1e293b 0%, #0f172a 100%)',
+  warm:   'radial-gradient(ellipse at 30% 0%, #2a1a08 0%, #1a0e04 60%, #0d0700 100%)',
+  purple: 'radial-gradient(ellipse at 50% 0%, #1a0a2e 0%, #0f0620 60%, #060311 100%)',
+  forest: 'linear-gradient(145deg, #0a1f0d 0%, #061209 60%, #020805 100%)',
 }
 
-
 export const BG_PREVIEW: Record<BgStyle, string> = {
-  dark:  '#1C1C1E',
-  black: '#000000',
-  navy:  '#0d1b2a',
-  slate: '#1e293b',
+  dark:   '#1C1C1E',
+  black:  '#000000',
+  navy:   '#0d1b2a',
+  slate:  '#1e293b',
+  warm:   '#1a0e04',
+  purple: '#0f0620',
+  forest: '#0a1f0d',
 }
 
 /** Responsive grid column classes per tile size.
