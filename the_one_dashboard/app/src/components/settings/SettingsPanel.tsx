@@ -15,6 +15,7 @@ import {
   accentHex,
   accentHsla,
   COLOR_MOODS,
+  BG_VALUES,
   type ColorMood,
   type TileStyle,
   type TileSize,
@@ -37,6 +38,22 @@ const DOMAIN_COLORS: Record<string, string> = {
   cover:          'text-ios-teal',
   sensor:         'text-ios-secondary',
   binary_sensor:  'text-ios-secondary',
+}
+
+const DOMAIN_ICON_BG: Record<string, string> = {
+  light:          'bg-ios-amber/20 text-ios-amber',
+  switch:         'bg-ios-blue/20 text-ios-blue',
+  input_boolean:  'bg-ios-blue/20 text-ios-blue',
+  climate:        'bg-ios-amber/20 text-ios-amber',
+  lock:           'bg-ios-red/20 text-ios-red',
+  cover:          'bg-ios-teal/20 text-ios-teal',
+  sensor:         'bg-white/5 text-ios-secondary',
+  binary_sensor:  'bg-white/5 text-ios-secondary',
+  person:         'bg-ios-green/20 text-ios-green',
+  automation:     'bg-ios-amber/20 text-ios-amber',
+  script:         'bg-ios-blue/20 text-ios-blue',
+  scene:          'bg-ios-green/20 text-ios-green',
+  media_player:   'bg-ios-blue/20 text-ios-blue',
 }
 
 function getDomainDefaultIcon(domain: string): LucideIcon {
@@ -300,9 +317,11 @@ interface MoodPickerProps {
 
 function MoodPicker({ theme, onApply }: MoodPickerProps) {
   return (
-    <div className="bg-ios-card rounded-2xl p-4">
-      <p className="text-sm font-semibold text-ios-label mb-3">Color Mood</p>
-      <div className="grid grid-cols-2 gap-2">
+    <div>
+      <p className="text-xs font-semibold text-ios-secondary uppercase tracking-wider mb-3 px-1">
+        Color Mood
+      </p>
+      <div className="grid grid-cols-2 gap-3">
         {COLOR_MOODS.map((mood) => {
           const isActive = theme.moodId === mood.id
           return (
@@ -310,33 +329,45 @@ function MoodPicker({ theme, onApply }: MoodPickerProps) {
               key={mood.id}
               onClick={() => onApply(mood)}
               className={cn(
-                'flex flex-col items-start gap-2 p-3 rounded-xl transition-all text-left',
+                'relative rounded-2xl overflow-hidden text-left transition-all active:scale-[0.97]',
                 isActive
-                  ? 'ring-2 ring-white/60 bg-white/10'
-                  : 'bg-ios-card-2/60 hover:bg-ios-card-2 active:scale-95'
+                  ? 'ring-2 ring-white/70 shadow-lg shadow-black/40'
+                  : 'ring-1 ring-white/10 hover:ring-white/25'
               )}
+              style={{ background: BG_VALUES[mood.bgStyle], minHeight: 88 }}
             >
-              {/* Swatches */}
-              <div className="flex gap-1">
-                {mood.swatches.map((color, i) => (
-                  <div
-                    key={i}
-                    className="w-6 h-6 rounded-lg shrink-0 shadow-sm"
-                    style={{ background: color }}
-                  />
-                ))}
-              </div>
-              {/* Labels */}
-              <div>
-                <p className={cn(
-                  'text-xs font-semibold leading-tight',
-                  isActive ? 'text-ios-label' : 'text-ios-secondary'
-                )}>
-                  {mood.name}
-                </p>
-                <p className="text-[10px] text-ios-secondary mt-0.5 leading-tight">
-                  {mood.desc}
-                </p>
+              {/* Dark gradient overlay for text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
+
+              {/* Accent top bar */}
+              <div
+                className="absolute top-0 left-0 right-0 h-0.5"
+                style={{ background: `hsl(${mood.accent}, 80%, 60%)` }}
+              />
+
+              {/* Active checkmark */}
+              {isActive && (
+                <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-white flex items-center justify-center shadow">
+                  <Check className="w-3 h-3 text-black" strokeWidth={3} />
+                </div>
+              )}
+
+              <div className="relative p-3 pt-3.5 flex flex-col justify-between h-full">
+                {/* Swatches */}
+                <div className="flex gap-1 mb-2">
+                  {mood.swatches.slice(0, 4).map((color, i) => (
+                    <div
+                      key={i}
+                      className="w-5 h-5 rounded-md shrink-0 border border-white/15"
+                      style={{ background: color }}
+                    />
+                  ))}
+                </div>
+                {/* Labels */}
+                <div>
+                  <p className="text-xs font-bold text-white leading-tight">{mood.name}</p>
+                  <p className="text-[10px] text-white/60 mt-0.5 leading-tight">{mood.desc}</p>
+                </div>
               </div>
             </button>
           )
@@ -378,8 +409,8 @@ function OptionRow<T extends string>({
 }) {
   return (
     <div>
-      <p className="text-sm font-semibold text-ios-label mb-2">{label}</p>
-      <div className="flex gap-2">
+      <p className="text-xs font-semibold text-ios-secondary uppercase tracking-wider mb-2">{label}</p>
+      <div className="bg-black/20 rounded-xl p-1 flex gap-0.5">
         {options.map((opt) => {
           const isSelected = value === opt.id
           return (
@@ -387,15 +418,19 @@ function OptionRow<T extends string>({
               key={opt.id}
               onClick={() => onChange(opt.id)}
               className={cn(
-                'flex-1 py-2.5 rounded-xl flex flex-col items-center gap-0.5 text-sm font-medium transition-all border',
+                'flex-1 py-2 px-1 rounded-lg flex flex-col items-center gap-0.5 text-sm font-medium transition-all',
                 isSelected
-                  ? 'border-white/20 text-ios-label'
-                  : 'border-transparent text-ios-secondary bg-ios-card-2/50 hover:bg-ios-card-2'
+                  ? 'text-ios-label shadow-sm'
+                  : 'text-ios-secondary hover:text-ios-label/70'
               )}
-              style={isSelected ? { background: accentHsla(accentHue, 0.2) } : undefined}
+              style={isSelected ? { background: accentHsla(accentHue, 0.25) } : undefined}
             >
               <span>{opt.label}</span>
-              {opt.desc && <span className="text-[10px] text-ios-secondary font-normal">{opt.desc}</span>}
+              {opt.desc && (
+                <span className={cn('text-[10px] font-normal', isSelected ? 'text-ios-secondary' : 'text-ios-secondary/60')}>
+                  {opt.desc}
+                </span>
+              )}
             </button>
           )
         })}
@@ -420,12 +455,18 @@ function AppearanceSection() {
   }
 
   return (
-    <div className="px-4 pb-8 space-y-4">
-      {/* Color Mood picker — replaces Background + Accent preset */}
+    <div className="px-4 pb-8 space-y-5 mt-1">
+      {/* Color Mood picker */}
       <MoodPicker theme={theme} onApply={applyMood} />
 
+      {/* Fine-tune section */}
+      <div>
+        <p className="text-xs font-semibold text-ios-secondary uppercase tracking-wider mb-3 px-1">
+          Fine-tune
+        </p>
+
       {/* Fine-tune: accent hue */}
-      <div className="bg-ios-card rounded-2xl p-4">
+      <div className="bg-ios-card rounded-2xl p-4 mb-3">
         <div className="flex items-center justify-between mb-3">
           <p className="text-sm font-semibold text-ios-label">{t('accent_color')}</p>
           <div
@@ -434,7 +475,7 @@ function AppearanceSection() {
           />
         </div>
         {/* Rainbow hue bar */}
-        <div className="relative h-4 rounded-full overflow-hidden" style={{
+        <div className="relative h-5 rounded-full overflow-hidden" style={{
           background: 'linear-gradient(to right, hsl(0,80%,60%), hsl(30,80%,60%), hsl(60,80%,60%), hsl(90,80%,60%), hsl(120,80%,60%), hsl(150,80%,60%), hsl(180,80%,60%), hsl(210,80%,60%), hsl(240,80%,60%), hsl(270,80%,60%), hsl(300,80%,60%), hsl(330,80%,60%), hsl(360,80%,60%))'
         }}>
           <input
@@ -503,6 +544,7 @@ function AppearanceSection() {
           <span className="text-[11px] text-ios-secondary">{t('opaque')}</span>
         </div>
       </div>
+      </div>{/* end fine-tune section */}
     </div>
   )
 }
@@ -670,19 +712,19 @@ export function SettingsPanel({ onClose }: Props) {
           )}
         </div>
 
-        {/* Section tabs */}
-        <div className="flex gap-1 px-4 pb-3">
+        {/* Section tabs — iOS segmented control */}
+        <div className="mx-4 mb-3 bg-black/25 rounded-xl p-1 flex gap-0.5">
           {(['areas', 'appearance'] as const).map((s) => (
             <button
               key={s}
               onClick={() => { setSection(s); setSearch('') }}
               className={cn(
-                'flex-1 py-2 rounded-xl text-sm font-medium transition-all capitalize',
+                'flex-1 py-1.5 rounded-lg text-sm font-semibold transition-all',
                 section === s
-                  ? 'text-ios-label'
-                  : 'text-ios-secondary bg-ios-card-2/50 hover:bg-ios-card-2'
+                  ? 'text-ios-label shadow-sm'
+                  : 'text-ios-secondary hover:text-ios-label/70'
               )}
-              style={section === s ? { background: accentHsla(hue, 0.2) } : undefined}
+              style={section === s ? { background: accentHsla(hue, 0.3) } : undefined}
             >
               {s === 'areas' ? t('areas_tab') : t('appearance_tab')}
             </button>
@@ -730,17 +772,24 @@ export function SettingsPanel({ onClose }: Props) {
               const custom = isCustomArea(area.area_id)
               return (
                 <div key={area.area_id} className="bg-ios-card rounded-2xl overflow-hidden">
-                  <div className="flex items-center gap-3 px-4 py-3 border-b border-ios-separator">
+                  <div className="flex items-center gap-3 px-4 py-3.5 bg-white/[0.04] border-b border-ios-separator/60">
+                    {/* Area initial */}
+                    <div
+                      className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-sm font-bold text-white"
+                      style={{ background: accentHsla(hue, 0.35) }}
+                    >
+                      {area.name.charAt(0).toUpperCase()}
+                    </div>
                     <div className="flex-1">
-                      <p className="text-sm font-semibold text-ios-label">{area.name}</p>
+                      <p className="text-sm font-bold text-ios-label">{area.name}</p>
                       <p className="text-xs text-ios-secondary mt-0.5">
                         {tn(areaEntities.length, 'entities_one', 'entities_many')}
                       </p>
                     </div>
                     <button
                       onClick={() => setEditingArea({ id: area.area_id, name: area.name })}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-ios-card-2 text-xs font-medium active:scale-95 transition-transform"
-                      style={{ color: accentHex(hue) }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold active:scale-95 transition-transform"
+                      style={{ background: accentHsla(hue, 0.18), color: accentHex(hue) }}
                     >
                       <Pencil className="w-3 h-3" />
                       {t('edit_btn')}
@@ -779,10 +828,10 @@ export function SettingsPanel({ onClose }: Props) {
                               onClick={() => setIconPickerEntityId(eid)}
                               title="Change icon"
                               className={cn(
-                                'w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors',
-                                !customIconName && 'bg-ios-card-2 text-ios-secondary hover:text-ios-label'
+                                'w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all hover:scale-105',
+                                !customIconName && (DOMAIN_ICON_BG[domain] ?? 'bg-white/5 text-ios-secondary')
                               )}
-                              style={customIconName ? { background: accentHsla(hue, 0.2), color: accentHex(hue) } : undefined}
+                              style={customIconName ? { background: accentHsla(hue, 0.25), color: accentHex(hue) } : undefined}
                             >
                               <IconComp className="w-4 h-4" />
                             </button>
@@ -825,10 +874,12 @@ export function SettingsPanel({ onClose }: Props) {
           {/* Hidden entities */}
           {filteredHidden.length > 0 && (
             <div className="bg-ios-card rounded-2xl overflow-hidden mt-4">
-              <div className="px-4 py-3 border-b border-ios-separator flex items-center gap-2">
-                <EyeOff className="w-4 h-4 text-ios-secondary" />
+              <div className="px-4 py-3.5 bg-white/[0.04] border-b border-ios-separator/60 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+                  <EyeOff className="w-4 h-4 text-ios-secondary" />
+                </div>
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-ios-label">{t('hidden_section')}</p>
+                  <p className="text-sm font-bold text-ios-label">{t('hidden_section')}</p>
                   <p className="text-xs text-ios-secondary mt-0.5">{t('hidden_count', { n: hiddenEntities.length })}</p>
                 </div>
               </div>
@@ -837,12 +888,15 @@ export function SettingsPanel({ onClose }: Props) {
                 const label = entity
                   ? entityLabel(eid, entity.attributes.friendly_name)
                   : eid
+                const domain = getDomain(eid)
                 return (
                   <div
                     key={eid}
                     className="flex items-center gap-3 px-4 py-2.5 border-b border-ios-separator/40 last:border-0"
                   >
-                    <EyeOff className="w-4 h-4 text-ios-secondary shrink-0" />
+                    <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center shrink-0', DOMAIN_ICON_BG[domain] ?? 'bg-white/5 text-ios-secondary')}>
+                      <EyeOff className="w-4 h-4" />
+                    </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-ios-label truncate">{label}</p>
                       <p className="text-xs text-ios-secondary truncate">{eid}</p>
@@ -864,8 +918,8 @@ export function SettingsPanel({ onClose }: Props) {
           {/* Unassigned entities */}
           {filteredUnassigned.length > 0 && (
             <div className="bg-ios-card rounded-2xl overflow-hidden mt-4">
-              <div className="px-4 py-3 border-b border-ios-separator">
-                <p className="text-sm font-semibold text-ios-label">{t('unassigned')}</p>
+              <div className="px-4 py-3.5 bg-white/[0.04] border-b border-ios-separator/60">
+                <p className="text-sm font-bold text-ios-label">{t('unassigned')}</p>
                 <p className="text-xs text-ios-secondary mt-0.5">{t('unassigned_hint', { n: unassigned.length })}</p>
               </div>
               {filteredUnassigned.map((eid) => {
@@ -885,10 +939,10 @@ export function SettingsPanel({ onClose }: Props) {
                       onClick={() => setIconPickerEntityId(eid)}
                       title="Change icon"
                       className={cn(
-                        'w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors',
-                        !customIconName && 'bg-ios-card-2 text-ios-secondary hover:text-ios-label'
+                        'w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all hover:scale-105',
+                        !customIconName && (DOMAIN_ICON_BG[domain] ?? 'bg-white/5 text-ios-secondary')
                       )}
-                      style={customIconName ? { background: accentHsla(hue, 0.2), color: accentHex(hue) } : undefined}
+                      style={customIconName ? { background: accentHsla(hue, 0.25), color: accentHex(hue) } : undefined}
                     >
                       <IconComp className="w-4 h-4" />
                     </button>
