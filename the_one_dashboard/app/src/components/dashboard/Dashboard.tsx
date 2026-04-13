@@ -668,9 +668,6 @@ export function Dashboard() {
               onAddEntity={isEditMode && isRoomView ? () => setShowAddModal(true) : undefined}
             />
         }
-        {activeTab === 'home' && filteredEntities.length === 0 && activeTab !== 'home' && (
-          <EmptyState />
-        )}
       </div>
 
       {/* Edit mode floating toolbar */}

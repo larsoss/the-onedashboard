@@ -13,7 +13,7 @@ import { BaseTile } from './BaseTile'
 import { useEntity } from '@/hooks/useEntities'
 import { useHA } from '@/hooks/useHAClient'
 import { entityLabel } from '@/lib/utils'
-import { getIconByName } from '@/lib/icons'
+import { resolveEntityIcon } from '@/lib/icons'
 import type { SensorAttributes } from '@/types/ha-types'
 
 function getDefaultIcon(deviceClass: string | undefined) {
@@ -61,7 +61,7 @@ export function SensorTile({ entityId }: SensorTileProps) {
     ? entity.state === 'on' ? 'On' : 'Off'
     : `${entity.state}${unit ? '\u202f' + unit : ''}`
 
-  const CustomIconComp = entityIcons[entityId] ? getIconByName(entityIcons[entityId]) : null
+  const CustomIconComp = resolveEntityIcon(entityIcons, entityId)
   const icon = CustomIconComp
     ? <CustomIconComp className="w-full h-full" />
     : getDefaultIcon(deviceClass)

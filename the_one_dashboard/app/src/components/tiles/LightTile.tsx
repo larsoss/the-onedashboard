@@ -9,7 +9,7 @@ import { useEntity } from '@/hooks/useEntities'
 import { useHA } from '@/hooks/useHAClient'
 import { entityLabel, brightnessToPercent, percentToBrightness } from '@/lib/utils'
 import { hsvToRgb, hsvToCssRgb, miredsToKelvin } from '@/lib/color-utils'
-import { getIconByName } from '@/lib/icons'
+import { resolveEntityIcon } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import type { LightAttributes } from '@/types/ha-types'
 
@@ -159,7 +159,7 @@ export function LightTile({ entityId }: LightTileProps) {
     ? hsvToCssRgb(currentHue, currentSat)
     : undefined
 
-  const CustomIcon = entityIcons[entityId] ? getIconByName(entityIcons[entityId]) : null
+  const CustomIcon = resolveEntityIcon(entityIcons, entityId)
   const IconComp = CustomIcon ?? Lightbulb
 
   const sublabel = isOn

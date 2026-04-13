@@ -6,7 +6,7 @@ import { Slider } from '@/components/ui/slider'
 import { useEntity } from '@/hooks/useEntities'
 import { useHA } from '@/hooks/useHAClient'
 import { entityLabel } from '@/lib/utils'
-import { getIconByName } from '@/lib/icons'
+import { resolveEntityIcon } from '@/lib/icons'
 import type { CoverAttributes } from '@/types/ha-types'
 
 interface CoverTileProps {
@@ -32,7 +32,7 @@ export function CoverTile({ entityId }: CoverTileProps) {
     ? `${attrs.current_position}% open`
     : isOpen ? 'Open' : 'Closed'
 
-  const CustomIcon = entityIcons[entityId] ? getIconByName(entityIcons[entityId]) : null
+  const CustomIcon = resolveEntityIcon(entityIcons, entityId)
 
   const icon = CustomIcon
     ? <CustomIcon className="w-full h-full" />

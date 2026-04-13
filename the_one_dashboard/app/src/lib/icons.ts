@@ -65,3 +65,12 @@ const ICON_MAP = new Map(ICON_OPTIONS.map((o) => [o.name, o.icon]))
 export function getIconByName(name: string): LucideIcon | null {
   return ICON_MAP.get(name) ?? null
 }
+
+/** Resolve a custom icon from the entity-icon map, or null if none is assigned */
+export function resolveEntityIcon(
+  entityIcons: Record<string, string>,
+  entityId: string,
+): LucideIcon | null {
+  const name = entityIcons[entityId]
+  return name ? (ICON_MAP.get(name) ?? null) : null
+}

@@ -3,7 +3,7 @@ import { BaseTile } from './BaseTile'
 import { useEntity } from '@/hooks/useEntities'
 import { useHA } from '@/hooks/useHAClient'
 import { entityLabel } from '@/lib/utils'
-import { getIconByName } from '@/lib/icons'
+import { resolveEntityIcon } from '@/lib/icons'
 import { useState } from 'react'
 
 interface SceneTileProps {
@@ -19,7 +19,7 @@ export function SceneTile({ entityId }: SceneTileProps) {
 
   const attrs = entity.attributes
   const label = entityLabel(entityId, attrs.friendly_name)
-  const CustomIcon = entityIcons[entityId] ? getIconByName(entityIcons[entityId]) : null
+  const CustomIcon = resolveEntityIcon(entityIcons, entityId)
 
   const handleActivate = async () => {
     setActivating(true)

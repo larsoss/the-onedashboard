@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Camera, X, Maximize2 } from 'lucide-react'
 import { useEntity } from '@/hooks/useEntities'
 import { entityLabel } from '@/lib/utils'
@@ -16,17 +16,16 @@ export function CameraTile({ entityId }: CameraTileProps) {
   const [fullscreen, setFullscreen] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const refreshSnapshot = () => {
+  const refreshSnapshot = useCallback(() => {
     // Cache-bust with timestamp
     setSnapshotUrl(`/dashboard-api/camera/${encodeURIComponent(entityId)}/snapshot?t=${Date.now()}`)
-  }
+  }, [entityId])
 
   useEffect(() => {
     refreshSnapshot()
     timerRef.current = setInterval(refreshSnapshot, REFRESH_INTERVAL_MS)
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entityId])
+  }, [refreshSnapshot])
 
   if (!entity) return null
 

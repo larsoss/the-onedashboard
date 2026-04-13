@@ -9,7 +9,7 @@ import { entityLabel, getDomain } from '@/lib/utils'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Slider } from '@/components/ui/slider'
 import { cn } from '@/lib/utils'
-import { ICON_OPTIONS, getIconByName } from '@/lib/icons'
+import { ICON_OPTIONS, resolveEntityIcon } from '@/lib/icons'
 import { t, tn } from '@/lib/i18n'
 import {
   accentHex,
@@ -656,8 +656,7 @@ export function SettingsPanel({ onClose }: Props) {
         return lbl.includes(q) || eid.toLowerCase().includes(q)
       })
     })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allAreas, entities, entityAreaOverrides, q])
+  }, [allAreas, effectiveEntityArea, entities, q])
 
   const filteredEntityIdsForArea = (areaId: string): string[] => {
     const ids = entityIdsForArea(areaId)
@@ -815,9 +814,8 @@ export function SettingsPanel({ onClose }: Props) {
                         if (!entity) return null
                         const label = entityLabel(eid, entity.attributes.friendly_name)
                         const domain = getDomain(eid)
-                        const customIconName = entityIcons[eid]
-                        const resolvedIcon = customIconName ? getIconByName(customIconName) : null
-                        const IconComp: LucideIcon = resolvedIcon ?? getDomainDefaultIcon(domain)
+                        const hasCustomIcon = Boolean(entityIcons[eid])
+                        const IconComp: LucideIcon = resolveEntityIcon(entityIcons, eid) ?? getDomainDefaultIcon(domain)
                         return (
                           <div
                             key={eid}
@@ -829,9 +827,9 @@ export function SettingsPanel({ onClose }: Props) {
                               title="Change icon"
                               className={cn(
                                 'w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all hover:scale-105',
-                                !customIconName && (DOMAIN_ICON_BG[domain] ?? 'bg-white/5 text-ios-secondary')
+                                !hasCustomIcon && (DOMAIN_ICON_BG[domain] ?? 'bg-white/5 text-ios-secondary')
                               )}
-                              style={customIconName ? { background: accentHsla(hue, 0.25), color: accentHex(hue) } : undefined}
+                              style={hasCustomIcon ? { background: accentHsla(hue, 0.25), color: accentHex(hue) } : undefined}
                             >
                               <IconComp className="w-4 h-4" />
                             </button>
@@ -927,9 +925,8 @@ export function SettingsPanel({ onClose }: Props) {
                 if (!entity) return null
                 const label = entityLabel(eid, entity.attributes.friendly_name)
                 const domain = getDomain(eid)
-                const customIconName = entityIcons[eid]
-                const resolvedIcon2 = customIconName ? getIconByName(customIconName) : null
-                const IconComp: LucideIcon = resolvedIcon2 ?? getDomainDefaultIcon(domain)
+                const hasCustomIcon = Boolean(entityIcons[eid])
+                const IconComp: LucideIcon = resolveEntityIcon(entityIcons, eid) ?? getDomainDefaultIcon(domain)
                 return (
                   <div
                     key={eid}
@@ -940,9 +937,9 @@ export function SettingsPanel({ onClose }: Props) {
                       title="Change icon"
                       className={cn(
                         'w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all hover:scale-105',
-                        !customIconName && (DOMAIN_ICON_BG[domain] ?? 'bg-white/5 text-ios-secondary')
+                        !hasCustomIcon && (DOMAIN_ICON_BG[domain] ?? 'bg-white/5 text-ios-secondary')
                       )}
-                      style={customIconName ? { background: accentHsla(hue, 0.25), color: accentHex(hue) } : undefined}
+                      style={hasCustomIcon ? { background: accentHsla(hue, 0.25), color: accentHex(hue) } : undefined}
                     >
                       <IconComp className="w-4 h-4" />
                     </button>

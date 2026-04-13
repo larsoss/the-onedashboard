@@ -10,7 +10,7 @@ import {
 import { useEntity } from '@/hooks/useEntities'
 import { useHA } from '@/hooks/useHAClient'
 import { entityLabel } from '@/lib/utils'
-import { getIconByName } from '@/lib/icons'
+import { resolveEntityIcon } from '@/lib/icons'
 import type { LockAttributes } from '@/types/ha-types'
 
 interface LockTileProps {
@@ -28,7 +28,7 @@ export function LockTile({ entityId }: LockTileProps) {
   const isLocked = entity.state === 'locked'
   const label = entityLabel(entityId, attrs.friendly_name)
 
-  const CustomIcon = entityIcons[entityId] ? getIconByName(entityIcons[entityId]) : null
+  const CustomIcon = resolveEntityIcon(entityIcons, entityId)
 
   const icon = CustomIcon
     ? <CustomIcon className="w-full h-full" />

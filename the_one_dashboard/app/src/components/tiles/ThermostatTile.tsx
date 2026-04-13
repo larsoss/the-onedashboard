@@ -10,7 +10,7 @@ import {
 import { useEntity } from '@/hooks/useEntities'
 import { useHA } from '@/hooks/useHAClient'
 import { entityLabel, formatTemp } from '@/lib/utils'
-import { getIconByName } from '@/lib/icons'
+import { resolveEntityIcon } from '@/lib/icons'
 import type { ClimateAttributes } from '@/types/ha-types'
 import { cn } from '@/lib/utils'
 import { t, type TranslationKey } from '@/lib/i18n'
@@ -56,7 +56,7 @@ export function ThermostatTile({ entityId }: ThermostatTileProps) {
   const unit = attrs.unit_of_measurement ?? '°C'
   const modes = attrs.hvac_modes ?? []
 
-  const CustomIcon = entityIcons[entityId] ? getIconByName(entityIcons[entityId]) : null
+  const CustomIcon = resolveEntityIcon(entityIcons, entityId)
   const IconComp = CustomIcon ?? Thermometer
 
   const adjustTemp = useCallback(

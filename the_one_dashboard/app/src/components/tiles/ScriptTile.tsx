@@ -3,7 +3,7 @@ import { BaseTile } from './BaseTile'
 import { useEntity } from '@/hooks/useEntities'
 import { useHA } from '@/hooks/useHAClient'
 import { entityLabel } from '@/lib/utils'
-import { getIconByName } from '@/lib/icons'
+import { resolveEntityIcon } from '@/lib/icons'
 
 interface ScriptTileProps {
   entityId: string
@@ -18,7 +18,7 @@ export function ScriptTile({ entityId }: ScriptTileProps) {
   const isRunning = entity.state === 'on'
   const attrs = entity.attributes
   const label = entityLabel(entityId, attrs.friendly_name)
-  const CustomIcon = entityIcons[entityId] ? getIconByName(entityIcons[entityId]) : null
+  const CustomIcon = resolveEntityIcon(entityIcons, entityId)
 
   const handleRun = () => {
     if (!isRunning) callService('script', 'turn_on', {}, entityId)

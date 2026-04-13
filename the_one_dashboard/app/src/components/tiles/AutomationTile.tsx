@@ -3,7 +3,7 @@ import { BaseTile } from './BaseTile'
 import { useEntity } from '@/hooks/useEntities'
 import { useHA } from '@/hooks/useHAClient'
 import { entityLabel } from '@/lib/utils'
-import { getIconByName } from '@/lib/icons'
+import { resolveEntityIcon } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import { t } from '@/lib/i18n'
 
@@ -20,7 +20,7 @@ export function AutomationTile({ entityId }: AutomationTileProps) {
   const isEnabled = entity.state === 'on'
   const attrs = entity.attributes
   const label = entityLabel(entityId, attrs.friendly_name)
-  const CustomIcon = entityIcons[entityId] ? getIconByName(entityIcons[entityId]) : null
+  const CustomIcon = resolveEntityIcon(entityIcons, entityId)
 
   const handleToggle = () => {
     callService('automation', isEnabled ? 'turn_off' : 'turn_on', {}, entityId)
