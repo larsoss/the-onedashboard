@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.58] - 2026-04-13
+
+- fix: thermostat temperature controls + README paths
+
 ## [1.0.56] - 2026-04-13
 
 - feat: professional settings panel redesign
