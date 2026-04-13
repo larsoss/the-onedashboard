@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.56] - 2026-04-13
+
+- feat: professional settings panel redesign
+
 ## [1.0.55] - 2026-04-12
 
 - feat: color mood presets in appearance settings
