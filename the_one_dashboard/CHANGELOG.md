@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.62] - 2026-04-14
+
+- feat: redesign media player tile — Spotify-style with real-time progress
+
 ## [1.0.61] - 2026-04-14
 
 - docs: rewrite README as full user guide with screenshot placeholders
