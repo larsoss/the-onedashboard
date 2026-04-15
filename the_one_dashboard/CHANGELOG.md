@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.1] - 2026-04-15
+
+- feat: professional settings panel redesign — grouped entities, domain filters, live state
+
 ## [2.0.0] - 2026-04-14
 
 ### Tiles
