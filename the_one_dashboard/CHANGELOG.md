@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.5] - 2026-04-16
+
+- docs: add root README for GitHub homepage + fix screenshot paths
+
 ## [2.0.4] - 2026-04-16
 
 - docs: use actual screenshots in README
