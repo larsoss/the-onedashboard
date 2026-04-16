@@ -681,13 +681,13 @@ export function Dashboard() {
     if (localStorage.getItem('hk_hide_ha_header') !== 'true') return
     headerAppliedRef.current = true
     const code =
-      `(function(){try{var sr=document.querySelector('home-assistant')` +
-      `?.shadowRoot?.querySelector('home-assistant-main')?.shadowRoot;` +
-      `if(!sr)return;` +
-      `if(!window.__todHH){window.__todHH=new CSSStyleSheet();` +
-      `window.__todHH.replaceSync('app-header,.header{display:none!important}');}` +
-      `if(!sr.adoptedStyleSheets.includes(window.__todHH))` +
-      `sr.adoptedStyleSheets=[...sr.adoptedStyleSheets,window.__todHH];` +
+      `(function(){try{` +
+      `var main=document.querySelector('home-assistant')?.shadowRoot?.querySelector('home-assistant-main');` +
+      `if(!main||!main.shadowRoot)return;` +
+      `if(main.shadowRoot.getElementById('__tod_hh__'))return;` +
+      `var s=document.createElement('style');s.id='__tod_hh__';` +
+      `s.textContent='app-header,app-toolbar,.header,[class*="toolbar"]{display:none!important}';` +
+      `main.shadowRoot.appendChild(s);` +
       `}catch(e){}})();`
     callService('browser_mod', 'javascript', { code })
   }, [status]) // eslint-disable-line react-hooks/exhaustive-deps

@@ -514,23 +514,36 @@ function OptionRow<T extends string>({
 
 const HEADER_STORAGE_KEY = 'hk_hide_ha_header'
 
-// Minified JS injected via browser_mod.javascript into the HA parent frame
-const HIDE_HEADER_CODE =
-  `(function(){try{var sr=document.querySelector('home-assistant')` +
-  `?.shadowRoot?.querySelector('home-assistant-main')?.shadowRoot;` +
-  `if(!sr)return;` +
-  `if(!window.__todHH){window.__todHH=new CSSStyleSheet();` +
-  `window.__todHH.replaceSync('app-header,.header{display:none!important}');}` +
-  `if(!sr.adoptedStyleSheets.includes(window.__todHH))` +
-  `sr.adoptedStyleSheets=[...sr.adoptedStyleSheets,window.__todHH];` +
-  `}catch(e){}})();`
+// JS injected via browser_mod.javascript — runs in the HA parent frame.
+// Injects a <style> tag into home-assistant-main's shadow root, which is the
+// most reliable way to hide the header across all HA versions.
+const HIDE_HEADER_CODE = [
+  `(function(){`,
+  `try{`,
+  `var main=document.querySelector('home-assistant')`,
+  `?.shadowRoot?.querySelector('home-assistant-main');`,
+  `if(!main||!main.shadowRoot)return;`,
+  `if(main.shadowRoot.getElementById('__tod_hh__'))return;`,
+  `var s=document.createElement('style');`,
+  `s.id='__tod_hh__';`,
+  `s.textContent='app-header,app-toolbar,.header,[class*="toolbar"]{display:none!important}',`,
+  `main.shadowRoot.appendChild(s);`,
+  `}catch(e){}`,
+  `})();`,
+].join('')
 
-const SHOW_HEADER_CODE =
-  `(function(){try{var sr=document.querySelector('home-assistant')` +
-  `?.shadowRoot?.querySelector('home-assistant-main')?.shadowRoot;` +
-  `if(sr&&window.__todHH)` +
-  `sr.adoptedStyleSheets=sr.adoptedStyleSheets.filter(function(s){return s!==window.__todHH;});` +
-  `}catch(e){}})();`
+const SHOW_HEADER_CODE = [
+  `(function(){`,
+  `try{`,
+  `var main=document.querySelector('home-assistant')`,
+  `?.shadowRoot?.querySelector('home-assistant-main');`,
+  `if(main&&main.shadowRoot){`,
+  `var s=main.shadowRoot.getElementById('__tod_hh__');`,
+  `if(s)s.remove();`,
+  `}`,
+  `}catch(e){}`,
+  `})();`,
+].join('')
 
 function AppearanceSection() {
   const { theme, setTheme, callService } = useHA()

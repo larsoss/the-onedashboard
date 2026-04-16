@@ -198,4 +198,5 @@ export interface HAUser {
   name: string
   is_owner: boolean
   is_active: boolean
+  system_generated?: boolean
 }

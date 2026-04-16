@@ -1,6 +1,7 @@
 import { getTheme, saveTheme, type ThemeConfig, DEFAULT_THEME } from './theme-storage'
 import { getFavorites, saveFavorites, getAreaOrder, saveAreaOrder, getEntityAreaOverrides, setEntityAreaOverrides, getCustomAreas, saveCustomAreas, type EntityAreaOverrides, type CustomArea } from './area-storage'
 import { getEntityIcons, saveEntityIcons, type EntityIconMap } from './icon-storage'
+import { getEntityLabels, saveEntityLabels, type EntityLabelMap } from './label-storage'
 import { getTileSizes, saveTileSizes, type EntityTileSizes } from './tile-sizes'
 import { getHiddenEntities, saveHiddenEntities } from './hidden-storage'
 import { getEntityOrder, saveEntityOrder, type EntityOrderMap } from './entity-order-storage'
@@ -12,6 +13,7 @@ export interface UserSettings {
   favorites?: string[]
   areaOrder?: string[]
   entityIcons?: EntityIconMap
+  entityLabels?: EntityLabelMap
   entityTileSizes?: EntityTileSizes
   hiddenEntities?: string[]
   entityOrder?: EntityOrderMap
@@ -27,6 +29,7 @@ export function collectUserSettings(): UserSettings {
     favorites: getFavorites(),
     areaOrder: getAreaOrder(),
     entityIcons: getEntityIcons(),
+    entityLabels: getEntityLabels(),
     entityTileSizes: getTileSizes(),
     hiddenEntities: getHiddenEntities(),
     entityOrder: getEntityOrder(),
@@ -43,6 +46,7 @@ export function applyServerSettings(s: UserSettings): void {
   if (s.favorites) saveFavorites(s.favorites)
   if (s.areaOrder) saveAreaOrder(s.areaOrder)
   if (s.entityIcons) saveEntityIcons(s.entityIcons)
+  if (s.entityLabels) saveEntityLabels(s.entityLabels)
   if (s.entityTileSizes) saveTileSizes(s.entityTileSizes)
   if (s.hiddenEntities) saveHiddenEntities(s.hiddenEntities)
   if (s.entityOrder) saveEntityOrder(s.entityOrder)

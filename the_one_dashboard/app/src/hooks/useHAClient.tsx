@@ -406,6 +406,7 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
     })
   }, [])
 
+  // Reload entityLabels after selectUser applies server settings
   const selectUser = useCallback(async (userId: string) => {
     setCurrentUserId(userId)
     storeUserId(userId)
@@ -420,6 +421,7 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
     setFavoritesState(getFavorites())
     setAreaOrderState(getAreaOrder())
     setEntityIcons(getEntityIcons())
+    setEntityLabels(getEntityLabels())
     setEntityTileSizesState(getTileSizes())
     setHiddenEntitiesState(getHiddenEntities())
     setEntityOrderState(getEntityOrder())
@@ -428,7 +430,8 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
     setAreaImages(getAreaImages())
   }, [])
 
-  // Auto-detect logged-in HA user via ingress header, fall back to stored ID
+  // Auto-detect logged-in HA user via ingress header, fall back to stored ID,
+  // and finally fall back to the only active HA user (when not accessed through ingress).
   useEffect(() => {
     fetch('/dashboard-api/whoami')
       .then(r => r.json())
@@ -441,6 +444,14 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
         if (storedId) selectUser(storedId).catch(console.error)
       })
   }, [selectUser])
+
+  // If still no user after HA users loaded, auto-select the single active user
+  useEffect(() => {
+    if (currentUserId) return
+    if (getStoredUserId()) return
+    const active = haUsers.filter(u => u.is_active && !u.system_generated)
+    if (active.length === 1) selectUser(active[0].id).catch(console.error)
+  }, [haUsers, currentUserId, selectUser])
 
   return (
     <HAContext.Provider
