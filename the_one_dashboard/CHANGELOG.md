@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.4] - 2026-04-16
+
+- docs: use actual screenshots in README
+
 ## [2.0.3] - 2026-04-16
 
 - feat: per-entity label overrides in dashboard
