@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.3] - 2026-04-16
+
+- feat: per-entity label overrides in dashboard
+
 ## [2.0.2] - 2026-04-16
 
 - feat: Browser Mod topbar toggle in Appearance settings
