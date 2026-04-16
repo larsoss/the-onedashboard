@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.6] - 2026-04-16
+
+- Merge remote-tracking branch 'github/main' into claude/homekit-dashboard-xSgWd
+
 ## [2.0.5] - 2026-04-16
 
 - docs: add root README for GitHub homepage + fix screenshot paths
