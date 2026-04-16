@@ -4,6 +4,7 @@ import {
 } from 'lucide-react'
 import { BaseTile } from './BaseTile'
 import { useEntity } from '@/hooks/useEntities'
+import { useHA } from '@/hooks/useHAClient'
 import { entityLabel } from '@/lib/utils'
 import type { WeatherAttributes, WeatherForecast } from '@/types/ha-types'
 import { cn } from '@/lib/utils'
@@ -44,12 +45,13 @@ interface WeatherTileProps {
 
 export function WeatherTile({ entityId }: WeatherTileProps) {
   const entity = useEntity(entityId)
+  const { entityLabels } = useHA()
 
   if (!entity) return null
 
   const attrs = entity.attributes as WeatherAttributes
   const condition = entity.state
-  const label = entityLabel(entityId, attrs.friendly_name)
+  const label = entityLabel(entityId, attrs.friendly_name, entityLabels)
   const WeatherIcon = getWeatherIcon(condition)
   const tempUnit = attrs.temperature_unit ?? '°C'
   const temp = typeof attrs.temperature === 'number' ? `${Math.round(attrs.temperature)}${tempUnit}` : '--'

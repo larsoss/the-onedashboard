@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Camera, X, Maximize2 } from 'lucide-react'
 import { useEntity } from '@/hooks/useEntities'
+import { useHA } from '@/hooks/useHAClient'
 import { entityLabel } from '@/lib/utils'
 import type { CameraAttributes } from '@/types/ha-types'
 import { cn } from '@/lib/utils'
@@ -12,6 +13,7 @@ interface CameraTileProps {
 
 export function CameraTile({ entityId }: CameraTileProps) {
   const entity = useEntity(entityId)
+  const { entityLabels } = useHA()
   const [snapshotUrl, setSnapshotUrl] = useState<string | null>(null)
   const [fullscreen, setFullscreen] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -30,7 +32,7 @@ export function CameraTile({ entityId }: CameraTileProps) {
   if (!entity) return null
 
   const attrs = entity.attributes as CameraAttributes
-  const label = entityLabel(entityId, attrs.friendly_name)
+  const label = entityLabel(entityId, attrs.friendly_name, entityLabels)
 
   return (
     <>

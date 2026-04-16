@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { CalendarDays, X, Clock } from 'lucide-react'
 import { useEntity } from '@/hooks/useEntities'
+import { useHA } from '@/hooks/useHAClient'
 import { entityLabel } from '@/lib/utils'
 import { BaseTile } from './BaseTile'
 import { fetchCalendarEvents } from '@/lib/ha-api'
@@ -19,6 +20,7 @@ interface CalendarTileProps {
 
 export function CalendarTile({ entityId }: CalendarTileProps) {
   const entity = useEntity(entityId)
+  const { entityLabels } = useHA()
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [showModal, setShowModal] = useState(false)
 
@@ -29,7 +31,7 @@ export function CalendarTile({ entityId }: CalendarTileProps) {
   if (!entity) return null
 
   const attrs = entity.attributes
-  const label = entityLabel(entityId, attrs.friendly_name)
+  const label = entityLabel(entityId, attrs.friendly_name, entityLabels)
   const next = events[0]
   const nextLabel = next ? next.summary : 'No upcoming events'
   const nextTime = next ? formatEventTime(next.start.dateTime, next.start.date) : ''

@@ -12,13 +12,13 @@ interface SceneTileProps {
 
 export function SceneTile({ entityId }: SceneTileProps) {
   const entity = useEntity(entityId)
-  const { callService, entityIcons } = useHA()
+  const { callService, entityIcons, entityLabels } = useHA()
   const [activating, setActivating] = useState(false)
 
   if (!entity) return null
 
   const attrs = entity.attributes
-  const label = entityLabel(entityId, attrs.friendly_name)
+  const label = entityLabel(entityId, attrs.friendly_name, entityLabels)
   const CustomIcon = resolveEntityIcon(entityIcons, entityId)
 
   const handleActivate = async () => {

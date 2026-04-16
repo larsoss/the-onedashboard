@@ -14,7 +14,7 @@ interface AutomationTileProps {
 
 export function AutomationTile({ entityId }: AutomationTileProps) {
   const entity = useEntity(entityId)
-  const { callService, entityIcons } = useHA()
+  const { callService, entityIcons, entityLabels } = useHA()
 
   // Optimistic enabled state — flips immediately, cleared when HA confirms
   const [optimisticEnabled, setOptimisticEnabled] = useState<boolean | null>(null)
@@ -28,7 +28,7 @@ export function AutomationTile({ entityId }: AutomationTileProps) {
   const entityEnabled = entity.state === 'on'
   const isEnabled = optimisticEnabled !== null ? optimisticEnabled : entityEnabled
   const attrs = entity.attributes
-  const label = entityLabel(entityId, attrs.friendly_name)
+  const label = entityLabel(entityId, attrs.friendly_name, entityLabels)
   const CustomIcon = resolveEntityIcon(entityIcons, entityId)
 
   const handleToggle = () => {

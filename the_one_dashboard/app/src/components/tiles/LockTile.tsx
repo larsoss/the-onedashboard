@@ -19,7 +19,7 @@ interface LockTileProps {
 
 export function LockTile({ entityId }: LockTileProps) {
   const entity = useEntity(entityId)
-  const { callService, entityIcons } = useHA()
+  const { callService, entityIcons, entityLabels } = useHA()
   const [confirmOpen, setConfirmOpen] = useState(false)
 
   // Optimistic locked state — changes immediately, cleared when HA confirms
@@ -52,7 +52,7 @@ export function LockTile({ entityId }: LockTileProps) {
   if (!entity) return null
 
   const attrs = entity.attributes as LockAttributes
-  const label = entityLabel(entityId, attrs.friendly_name)
+  const label = entityLabel(entityId, attrs.friendly_name, entityLabels)
   const CustomIcon = resolveEntityIcon(entityIcons, entityId)
 
   const icon = CustomIcon

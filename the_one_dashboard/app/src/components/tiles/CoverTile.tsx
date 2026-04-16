@@ -15,7 +15,7 @@ interface CoverTileProps {
 
 export function CoverTile({ entityId }: CoverTileProps) {
   const entity = useEntity(entityId)
-  const { callService, entityIcons } = useHA()
+  const { callService, entityIcons, entityLabels } = useHA()
   const [open, setOpen] = useState(false)
   const [localPosition, setLocalPosition] = useState(100)
   const [isDragging, setIsDragging] = useState(false)
@@ -63,7 +63,7 @@ export function CoverTile({ entityId }: CoverTileProps) {
 
   if (!entity) return null
 
-  const label = entityLabel(entityId, attrs.friendly_name)
+  const label = entityLabel(entityId, attrs.friendly_name, entityLabels)
   const sublabel = attrs.current_position !== undefined
     ? `${attrs.current_position}% open`
     : isOpen ? 'Open' : 'Closed'

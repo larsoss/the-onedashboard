@@ -12,7 +12,7 @@ interface SwitchTileProps {
 
 export function SwitchTile({ entityId }: SwitchTileProps) {
   const entity = useEntity(entityId)
-  const { callService, entityIcons } = useHA()
+  const { callService, entityIcons, entityLabels } = useHA()
 
   // Optimistic on/off — flips immediately on tap, cleared when HA confirms
   const [optimisticOn, setOptimisticOn] = useState<boolean | null>(null)
@@ -27,7 +27,7 @@ export function SwitchTile({ entityId }: SwitchTileProps) {
   const isOn = optimisticOn !== null ? optimisticOn : entityOn
   const domain = getDomain(entityId)
   const attrs = entity.attributes
-  const label = entityLabel(entityId, attrs.friendly_name)
+  const label = entityLabel(entityId, attrs.friendly_name, entityLabels)
 
   const CustomIcon = resolveEntityIcon(entityIcons, entityId)
 

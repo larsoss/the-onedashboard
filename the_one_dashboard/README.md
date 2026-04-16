@@ -186,9 +186,12 @@ Tap the **⚙️ gear** icon in the header.
 | Rename area | Tap the area name |
 | Assign entity to different area | Tap **Move** on an entity row |
 | Pick custom icon | Tap the colored icon button on any entity row |
+| **Rename entity** | Tap the entity name to edit it inline — only affects this dashboard, not HA |
 | Toggle favorite | Tap the ❤ heart on an entity row |
 | Hide entity | Tap the 👁 eye on an entity row |
 | Restore hidden entity | Tap **Restore** on a hidden entity row |
+
+> **Entity renaming** changes the name shown on tiles and in the dashboard only. The `friendly_name` in Home Assistant is never modified. Clear the field to revert to the HA name.
 
 ### Appearance tab
 
@@ -200,6 +203,19 @@ Tap the **⚙️ gear** icon in the header.
 | Icon Size | S · M · L |
 | Tile Opacity | 10% – 100% slider |
 | Background | Dark · Black · Navy · Slate |
+
+### Browser Mod (Appearance tab)
+
+The **Verberg HA topbar** toggle hides the white Home Assistant header bar that appears above the dashboard.
+
+| Toggle | Effect |
+|--------|--------|
+| On | Hides the HA header bar — useful for kiosk / wall-panel setups |
+| Off | Shows the HA header bar again |
+
+> **Requirements:** The [Browser Mod](https://github.com/thomasloven/hass-browser_mod) integration must be installed. No helpers, automations, or `input_boolean` entities are needed — the toggle calls `browser_mod.javascript` directly.
+>
+> The preference is saved locally. Each time you open the dashboard it automatically re-hides the bar if the toggle is on.
 
 ---
 

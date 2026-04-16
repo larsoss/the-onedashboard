@@ -112,7 +112,7 @@ interface LightTileProps {
 
 export function LightTile({ entityId }: LightTileProps) {
   const entity = useEntity(entityId)
-  const { callService, entityIcons, entities } = useHA()
+  const { callService, entityIcons, entities, entityLabels } = useHA()
 
   // Color dialog state
   const [colorOpen, setColorOpen] = useState(false)
@@ -308,8 +308,8 @@ export function LightTile({ entityId }: LightTileProps) {
   // ── Active target label ──────────────────────────────────────────────────
 
   const activeLabel = activeMemberId
-    ? entityLabel(activeMemberId, (entities[activeMemberId]?.attributes as LightAttributes)?.friendly_name)
-    : entityLabel(entityId, attrs.friendly_name)
+    ? entityLabel(activeMemberId, (entities[activeMemberId]?.attributes as LightAttributes)?.friendly_name, entityLabels)
+    : entityLabel(entityId, attrs.friendly_name, entityLabels)
 
   const tile = (
     <BaseTile
@@ -317,7 +317,7 @@ export function LightTile({ entityId }: LightTileProps) {
       activeColor={tintRgb ? 'none' : 'amber'}
       customTintRgb={tintRgb}
       icon={<IconComp className="w-full h-full" fill={!CustomIcon && isOn ? 'currentColor' : 'none'} />}
-      label={entityLabel(entityId, attrs.friendly_name)}
+      label={entityLabel(entityId, attrs.friendly_name, entityLabels)}
       sublabel={sublabel}
       onClick={hasColor ? openColorDialog : () => {
         const next = !isOn
@@ -355,7 +355,7 @@ export function LightTile({ entityId }: LightTileProps) {
             <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-ios-separator shrink-0">
               <div className="min-w-0">
                 <DialogTitle className="text-base font-semibold text-ios-label truncate">
-                  {entityLabel(entityId, attrs.friendly_name)}
+                  {entityLabel(entityId, attrs.friendly_name, entityLabels)}
                 </DialogTitle>
                 {isGroup && activeMemberId && (
                   <p className="text-xs text-ios-secondary truncate mt-0.5">{activeLabel}</p>
@@ -519,7 +519,7 @@ export function LightTile({ entityId }: LightTileProps) {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-sm font-semibold text-ios-label">
-              {entityLabel(entityId, attrs.friendly_name)}
+              {entityLabel(entityId, attrs.friendly_name, entityLabels)}
             </span>
             <span className="text-sm text-ios-amber font-medium">{displayBrightness}%</span>
           </div>

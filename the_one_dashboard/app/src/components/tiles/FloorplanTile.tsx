@@ -31,7 +31,7 @@ interface FloorplanTileProps {
 }
 
 export function FloorplanTile({ fpId }: FloorplanTileProps) {
-  const { entities, isEditMode, callService } = useHA()
+  const { entities, isEditMode, callService, entityLabels } = useHA()
   const [config, setConfig] = useState<FloorplanConfig>(() => {
     return getFloorplans()[fpId] ?? { imageUrl: '', hotspots: [] }
   })
@@ -98,7 +98,7 @@ export function FloorplanTile({ fpId }: FloorplanTileProps) {
   const searchResults = pendingEntitySearch.length > 0
     ? Object.values(entities)
         .filter((e) => {
-          const label = entityLabel(e.entity_id, e.attributes.friendly_name).toLowerCase()
+          const label = entityLabel(e.entity_id, e.attributes.friendly_name, entityLabels).toLowerCase()
           return label.includes(pendingEntitySearch.toLowerCase()) || e.entity_id.includes(pendingEntitySearch.toLowerCase())
         })
         .slice(0, 8)
@@ -119,7 +119,7 @@ export function FloorplanTile({ fpId }: FloorplanTileProps) {
           {config.hotspots.map((hs) => {
             const entity = entities[hs.entityId]
             const state = entity?.state ?? 'unknown'
-            const label = entity ? entityLabel(hs.entityId, entity.attributes.friendly_name) : hs.entityId
+            const label = entity ? entityLabel(hs.entityId, entity.attributes.friendly_name, entityLabels) : hs.entityId
             return (
               <button
                 key={hs.id}
@@ -215,7 +215,7 @@ export function FloorplanTile({ fpId }: FloorplanTileProps) {
                 >
                   <span className={cn('w-2 h-2 rounded-full shrink-0', hotspotColor(e.state))} />
                   <div>
-                    <p className="text-sm text-ios-label">{entityLabel(e.entity_id, e.attributes.friendly_name)}</p>
+                    <p className="text-sm text-ios-label">{entityLabel(e.entity_id, e.attributes.friendly_name, entityLabels)}</p>
                     <p className="text-xs text-ios-secondary">{e.entity_id}</p>
                   </div>
                 </button>

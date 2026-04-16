@@ -33,6 +33,11 @@ import {
   type EntityIconMap,
 } from '@/lib/icon-storage'
 import {
+  getEntityLabels,
+  saveEntityLabels,
+  type EntityLabelMap,
+} from '@/lib/label-storage'
+import {
   getTileSizes,
   saveTileSizes,
   type EntityTileSizes,
@@ -90,6 +95,9 @@ interface HAContextValue {
   // Entity icon overrides
   entityIcons: EntityIconMap
   saveEntityIcon: (entityId: string, iconName: string | null) => void
+  // Entity label overrides (dashboard-only, does not change HA friendly_name)
+  entityLabels: EntityLabelMap
+  saveEntityLabel: (entityId: string, label: string | null) => void
   // Favorites
   favorites: string[]
   toggleFavorite: (entityId: string) => void
@@ -133,6 +141,8 @@ const HAContext = createContext<HAContextValue>({
   setTheme: () => undefined,
   entityIcons: {},
   saveEntityIcon: () => undefined,
+  entityLabels: {},
+  saveEntityLabel: () => undefined,
   favorites: [],
   toggleFavorite: () => undefined,
   areaOrder: [],
@@ -165,6 +175,7 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
   const [customAreas, setCustomAreas] = useState<CustomArea[]>(getCustomAreas)
   const [theme, setThemeState] = useState<ThemeConfig>(getTheme)
   const [entityIcons, setEntityIcons] = useState<EntityIconMap>(getEntityIcons)
+  const [entityLabels, setEntityLabels] = useState<EntityLabelMap>(getEntityLabels)
   const [favorites, setFavoritesState] = useState<string[]>(getFavorites)
   const [areaOrder, setAreaOrderState] = useState<string[]>(getAreaOrder)
   const [isEditMode, setIsEditMode] = useState(false)
@@ -381,6 +392,20 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
     })
   }, [])
 
+  const saveEntityLabel = useCallback((entityId: string, label: string | null) => {
+    setEntityLabels((prev) => {
+      const next = { ...prev }
+      if (!label || !label.trim()) {
+        delete next[entityId]
+      } else {
+        next[entityId] = label.trim()
+      }
+      saveEntityLabels(next)
+      scheduleSyncToServer()
+      return next
+    })
+  }, [])
+
   const selectUser = useCallback(async (userId: string) => {
     setCurrentUserId(userId)
     storeUserId(userId)
@@ -439,6 +464,8 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
         setTheme,
         entityIcons,
         saveEntityIcon,
+        entityLabels,
+        saveEntityLabel,
         favorites,
         toggleFavorite,
         areaOrder,

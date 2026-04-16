@@ -155,7 +155,7 @@ interface EntityPickerProps {
 }
 
 function EntityPicker({ areaName, assignedIds, onSave, onClose }: EntityPickerProps) {
-  const { entities } = useHA()
+  const { entities, entityLabels } = useHA()
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<Set<string>>(new Set(assignedIds))
 
@@ -164,7 +164,7 @@ function EntityPicker({ areaName, assignedIds, onSave, onClose }: EntityPickerPr
     return Object.values(entities)
       .filter((e) => TILE_DOMAINS.has(getDomain(e.entity_id)))
       .filter((e) => {
-        const label = entityLabel(e.entity_id, e.attributes.friendly_name).toLowerCase()
+        const label = entityLabel(e.entity_id, e.attributes.friendly_name, entityLabels).toLowerCase()
         return label.includes(q) || e.entity_id.toLowerCase().includes(q)
       })
       .sort((a, b) => {
@@ -217,7 +217,7 @@ function EntityPicker({ areaName, assignedIds, onSave, onClose }: EntityPickerPr
             filtered.map((entity) => {
               const isChecked = selected.has(entity.entity_id)
               const domain = getDomain(entity.entity_id)
-              const label = entityLabel(entity.entity_id, entity.attributes.friendly_name)
+              const label = entityLabel(entity.entity_id, entity.attributes.friendly_name, entityLabels)
               return (
                 <button
                   key={entity.entity_id}
@@ -698,6 +698,8 @@ export function SettingsPanel({ onClose }: Props) {
     saveEntityAreaOverrides,
     updateCustomAreas,
     entityIcons,
+    entityLabels,
+    saveEntityLabel,
     theme,
     favorites,
     toggleFavorite,
@@ -712,6 +714,17 @@ export function SettingsPanel({ onClose }: Props) {
   const [search, setSearch] = useState('')
   const [domainFilter, setDomainFilter] = useState<string | null>(null)
   const [collapsedAreas, setCollapsedAreas] = useState<Set<string>>(new Set())
+  const [editingLabelId, setEditingLabelId] = useState<string | null>(null)
+  const [editingLabelValue, setEditingLabelValue] = useState('')
+
+  const startEditLabel = (eid: string, fallback: string) => {
+    setEditingLabelId(eid)
+    setEditingLabelValue(entityLabels[eid] ?? fallback)
+  }
+  const commitLabel = (eid: string) => {
+    saveEntityLabel(eid, editingLabelValue)
+    setEditingLabelId(null)
+  }
 
   const toggleAreaCollapse = (areaId: string) =>
     setCollapsedAreas((prev) => {
@@ -1070,7 +1083,7 @@ export function SettingsPanel({ onClose }: Props) {
                               {ids.map((eid, idx) => {
                                 const entity = entities[eid]
                                 if (!entity) return null
-                                const label = entityLabel(eid, entity.attributes.friendly_name)
+                                const label = entityLabel(eid, entity.attributes.friendly_name, entityLabels)
                                 const hasCustomIcon = Boolean(entityIcons[eid])
                                 const IconComp: LucideIcon = resolveEntityIcon(entityIcons, eid) ?? getDomainDefaultIcon(domain)
                                 const isFav = favorites.includes(eid)
@@ -1100,15 +1113,38 @@ export function SettingsPanel({ onClose }: Props) {
 
                                     {/* Name + state */}
                                     <div className="flex-1 min-w-0">
-                                      <p className="text-sm font-medium text-ios-label truncate leading-tight">
-                                        {label}
-                                      </p>
+                                      {editingLabelId === eid ? (
+                                        <input
+                                          autoFocus
+                                          type="text"
+                                          value={editingLabelValue}
+                                          onChange={(e) => setEditingLabelValue(e.target.value)}
+                                          onBlur={() => commitLabel(eid)}
+                                          onKeyDown={(e) => {
+                                            if (e.key === 'Enter') commitLabel(eid)
+                                            if (e.key === 'Escape') setEditingLabelId(null)
+                                          }}
+                                          placeholder={entityLabel(eid, entity.attributes.friendly_name)}
+                                          className="text-sm font-medium bg-ios-card-2 rounded-lg px-2 py-0.5 outline-none border border-white/15 text-ios-label w-full"
+                                        />
+                                      ) : (
+                                        <button
+                                          onClick={() => startEditLabel(eid, entityLabel(eid, entity.attributes.friendly_name))}
+                                          className="flex items-center gap-1 min-w-0 text-left group w-full"
+                                        >
+                                          <span className={cn(
+                                            'text-sm font-medium truncate leading-tight',
+                                            entityLabels[eid] ? 'text-white' : 'text-ios-label'
+                                          )}>
+                                            {label}
+                                          </span>
+                                          <Pencil className="w-2.5 h-2.5 shrink-0 opacity-0 group-hover:opacity-40 transition-opacity" />
+                                        </button>
+                                      )}
                                       <div className="flex items-center gap-2 mt-0.5">
-                                        {/* Domain badge */}
                                         <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-white/[0.07] text-ios-secondary/70 font-medium">
                                           {DOMAIN_LABEL[domain] ?? domain}
                                         </span>
-                                        {/* Live state */}
                                         <span className={cn('text-[11px] font-semibold', stateColor)}>
                                           {stateLabel}
                                         </span>
@@ -1209,7 +1245,7 @@ export function SettingsPanel({ onClose }: Props) {
               {filteredUnassigned.map((eid, idx) => {
                 const entity = entities[eid]
                 if (!entity) return null
-                const label = entityLabel(eid, entity.attributes.friendly_name)
+                const label = entityLabel(eid, entity.attributes.friendly_name, entityLabels)
                 const domain = getDomain(eid)
                 const hasCustomIcon = Boolean(entityIcons[eid])
                 const IconComp: LucideIcon = resolveEntityIcon(entityIcons, eid) ?? getDomainDefaultIcon(domain)
@@ -1230,7 +1266,34 @@ export function SettingsPanel({ onClose }: Props) {
                       <IconComp className="w-4.5 h-4.5" />
                     </button>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-ios-label truncate">{label}</p>
+                      {editingLabelId === eid ? (
+                        <input
+                          autoFocus
+                          type="text"
+                          value={editingLabelValue}
+                          onChange={(e) => setEditingLabelValue(e.target.value)}
+                          onBlur={() => commitLabel(eid)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') commitLabel(eid)
+                            if (e.key === 'Escape') setEditingLabelId(null)
+                          }}
+                          placeholder={entityLabel(eid, entity.attributes.friendly_name)}
+                          className="text-sm font-medium bg-ios-card-2 rounded-lg px-2 py-0.5 outline-none border border-white/15 text-ios-label w-full"
+                        />
+                      ) : (
+                        <button
+                          onClick={() => startEditLabel(eid, entityLabel(eid, entity.attributes.friendly_name))}
+                          className="flex items-center gap-1 min-w-0 text-left group w-full"
+                        >
+                          <span className={cn(
+                            'text-sm font-medium truncate',
+                            entityLabels[eid] ? 'text-white' : 'text-ios-label'
+                          )}>
+                            {label}
+                          </span>
+                          <Pencil className="w-2.5 h-2.5 shrink-0 opacity-0 group-hover:opacity-40 transition-opacity" />
+                        </button>
+                      )}
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-white/[0.07] text-ios-secondary/70 font-medium">
                           {DOMAIN_LABEL[domain] ?? domain}

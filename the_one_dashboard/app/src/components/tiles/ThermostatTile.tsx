@@ -41,7 +41,7 @@ interface ThermostatTileProps {
 
 export function ThermostatTile({ entityId }: ThermostatTileProps) {
   const entity = useEntity(entityId)
-  const { callService, entityIcons } = useHA()
+  const { callService, entityIcons, entityLabels } = useHA()
   const [open, setOpen] = useState(false)
 
   // Optimistic temperature — set immediately on press, cleared when HA confirms
@@ -122,7 +122,7 @@ export function ThermostatTile({ entityId }: ThermostatTileProps) {
         isActive={isActive}
         activeColor={activeColor as 'amber' | 'blue' | 'purple'}
         icon={<IconComp className="w-full h-full" />}
-        label={entityLabel(entityId, attrs.friendly_name)}
+        label={entityLabel(entityId, attrs.friendly_name, entityLabels)}
         onClick={() => setOpen(true)}
       >
         {/* Inline ± controls */}
@@ -168,7 +168,7 @@ export function ThermostatTile({ entityId }: ThermostatTileProps) {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
-          <DialogTitle>{entityLabel(entityId, attrs.friendly_name)}</DialogTitle>
+          <DialogTitle>{entityLabel(entityId, attrs.friendly_name, entityLabels)}</DialogTitle>
 
           {/* Current temperature */}
           <div className="mt-4 text-center">

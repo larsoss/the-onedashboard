@@ -42,14 +42,14 @@ interface SensorTileProps {
 
 export function SensorTile({ entityId }: SensorTileProps) {
   const entity = useEntity(entityId)
-  const { entityIcons } = useHA()
+  const { entityIcons, entityLabels } = useHA()
 
   if (!entity) return null
 
   const attrs = entity.attributes as SensorAttributes
   const deviceClass = attrs.device_class
   const unit = attrs.unit_of_measurement ?? ''
-  const label = entityLabel(entityId, attrs.friendly_name)
+  const label = entityLabel(entityId, attrs.friendly_name, entityLabels)
 
   const isBinary = entityId.startsWith('binary_sensor.')
   const isActive = isBinary && entity.state === 'on'

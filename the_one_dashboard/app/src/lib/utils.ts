@@ -5,7 +5,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function entityLabel(entityId: string, friendlyName?: unknown): string {
+export function entityLabel(
+  entityId: string,
+  friendlyName?: unknown,
+  overrides?: Record<string, string>,
+): string {
+  if (overrides?.[entityId]) return overrides[entityId]
   if (typeof friendlyName === 'string' && friendlyName) return friendlyName
   return entityId
     .split('.')[1]

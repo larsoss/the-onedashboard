@@ -80,7 +80,7 @@ function ConfigDialog({
   onSave: (cfg: PersonConfig) => void
   onClose: () => void
 }) {
-  const { entities } = useHA()
+  const { entities, entityLabels } = useHA()
   const [draft, setDraft] = useState<PersonConfig>({ ...config })
   const [search, setSearch] = useState('')
   const [activeField, setActiveField] = useState<keyof PersonConfig | null>(null)
@@ -92,8 +92,8 @@ function ConfigDialog({
         return d === 'sensor' || d === 'media_player' || d === 'binary_sensor'
       })
       .sort((a, b) => {
-        const la = entityLabel(a.entity_id, a.attributes.friendly_name as string)
-        const lb = entityLabel(b.entity_id, b.attributes.friendly_name as string)
+        const la = entityLabel(a.entity_id, a.attributes.friendly_name as string, entityLabels)
+        const lb = entityLabel(b.entity_id, b.attributes.friendly_name as string, entityLabels)
         return la.localeCompare(lb)
       }),
     [entities]
@@ -102,7 +102,7 @@ function ConfigDialog({
   const filtered = useMemo(() => {
     const q = search.toLowerCase()
     return allEntities.filter((e) => {
-      const label = entityLabel(e.entity_id, e.attributes.friendly_name as string).toLowerCase()
+      const label = entityLabel(e.entity_id, e.attributes.friendly_name as string, entityLabels).toLowerCase()
       return label.includes(q) || e.entity_id.toLowerCase().includes(q)
     })
   }, [allEntities, search])
@@ -124,7 +124,7 @@ function ConfigDialog({
         <div className="px-5 pt-5 pb-3 border-b border-ios-separator shrink-0">
           <DialogTitle>Configure Person Card</DialogTitle>
           <p className="text-xs text-ios-secondary mt-0.5 truncate">
-            {entityLabel(entityId, entities[entityId]?.attributes.friendly_name as string)}
+            {entityLabel(entityId, entities[entityId]?.attributes.friendly_name as string, entityLabels)}
           </p>
         </div>
 
@@ -166,7 +166,7 @@ function ConfigDialog({
                   )}
                 >
                   <span className="text-sm text-ios-label">
-                    {entityLabel(e.entity_id, e.attributes.friendly_name as string)}
+                    {entityLabel(e.entity_id, e.attributes.friendly_name as string, entityLabels)}
                   </span>
                   <span className="text-xs text-ios-secondary">{e.entity_id}</span>
                 </button>
@@ -196,7 +196,7 @@ function ConfigDialog({
                     <p className="text-sm font-medium text-ios-label">{label}</p>
                     {val ? (
                       <p className="text-xs text-ios-blue truncate">
-                        {entity ? entityLabel(val, entity.attributes.friendly_name as string) : val}
+                        {entity ? entityLabel(val, entity.attributes.friendly_name as string, entityLabels) : val}
                       </p>
                     ) : (
                       <p className="text-xs text-ios-secondary opacity-60">{hint}</p>
@@ -246,7 +246,7 @@ interface PersonTileProps {
 }
 
 export function PersonTile({ entityId }: PersonTileProps) {
-  const { entities, theme } = useHA()
+  const { entities, theme, entityLabels } = useHA()
   const [configOpen, setConfigOpen] = useState(false)
   const [config, setConfig] = useState<PersonConfig>(() => getPersonConfigs()[entityId] ?? {})
 
@@ -258,7 +258,7 @@ export function PersonTile({ entityId }: PersonTileProps) {
   const zone = entity.state   // 'home', 'not_home', or zone name
   const isHome = zone === 'home'
   const isAway = zone === 'not_home'
-  const personName = entityLabel(entityId, entity.attributes.friendly_name as string)
+  const personName = entityLabel(entityId, entity.attributes.friendly_name as string, entityLabels)
   const entityPicture = entity.attributes.entity_picture as string | undefined
 
   // Linked sensor values

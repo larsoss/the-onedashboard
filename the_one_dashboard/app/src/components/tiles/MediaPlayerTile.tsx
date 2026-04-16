@@ -23,7 +23,7 @@ function fmt(sec: number): string {
 
 export function MediaPlayerTile({ entityId }: MediaPlayerTileProps) {
   const entity = useEntity(entityId)
-  const { callService } = useHA()
+  const { callService, entityLabels } = useHA()
 
   // Real-time progress 0–1 interpolated from HA position + elapsed time
   const [progress, setProgress] = useState(0)
@@ -58,7 +58,7 @@ export function MediaPlayerTile({ entityId }: MediaPlayerTileProps) {
 
   if (!entity) return null
 
-  const label = entityLabel(entityId, attrs.friendly_name)
+  const label = entityLabel(entityId, attrs.friendly_name, entityLabels)
   const title = attrs.media_title ?? label
   const artist = attrs.media_artist ?? ''
   const album = attrs.media_album_name ?? ''

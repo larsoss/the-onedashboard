@@ -11,13 +11,13 @@ interface ScriptTileProps {
 
 export function ScriptTile({ entityId }: ScriptTileProps) {
   const entity = useEntity(entityId)
-  const { callService, entityIcons } = useHA()
+  const { callService, entityIcons, entityLabels } = useHA()
 
   if (!entity) return null
 
   const isRunning = entity.state === 'on'
   const attrs = entity.attributes
-  const label = entityLabel(entityId, attrs.friendly_name)
+  const label = entityLabel(entityId, attrs.friendly_name, entityLabels)
   const CustomIcon = resolveEntityIcon(entityIcons, entityId)
 
   const handleRun = () => {
