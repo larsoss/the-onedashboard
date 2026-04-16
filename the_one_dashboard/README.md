@@ -8,8 +8,8 @@
 A HomeKit-style Home Assistant dashboard add-on. Glassmorphism tiles, color light controls, per-user settings, and real-time WebSocket updates — no configuration needed.
 
 <!-- Add your screenshots to docs/screenshots/ and uncomment the lines below -->
-![Home view](docs/screenshots/home.jpg)
-<!-- ![Edit mode](docs/screenshots/edit-mode.png) -->
+![Home view](../docs/screenshots/home.jpg)
+<!-- ![Edit mode](../docs/screenshots/edit-mode.png) -->
 
 ---
 
@@ -54,7 +54,7 @@ Each area card shows:
 - Taps through to the full room tile grid
 - Optional custom background photo (set in Edit Mode)
 
-![Home view](docs/screenshots/home.jpg)
+![Home view](../docs/screenshots/home.jpg)
 
 ---
 
@@ -64,7 +64,7 @@ Tap any area card to enter that room. All supported entities for that area are s
 
 Swipe back or tap the room name in the header to return home.
 
-![Room view](docs/screenshots/room.jpg)
+![Room view](../docs/screenshots/room.jpg)
 
 ---
 
@@ -174,8 +174,8 @@ Tap **✓ Done** in the bottom toolbar to exit Edit Mode.
 
 Tap the **⚙️ gear** icon in the header.
 
-![Settings — Gebieden](docs/screenshots/settings-main.jpg)
-![Settings — Weergave](docs/screenshots/settings-view.jpg)
+![Settings — Gebieden](../docs/screenshots/settings-main.jpg)
+![Settings — Weergave](../docs/screenshots/settings-view.jpg)
 
 ### Areas tab
 
@@ -302,7 +302,7 @@ To add screenshots to this guide:
 Suggested filenames:
 
 ```
-docs/screenshots/
+../docs/screenshots/           (repo root → docs/screenshots/)
   home.jpg              ✓ Home view with favorites + people + room cards
   room.jpg              ✓ A room with various tiles
   settings-main.jpg     ✓ Settings panel — Gebieden (Areas) tab
