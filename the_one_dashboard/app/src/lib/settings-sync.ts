@@ -1,5 +1,5 @@
 import { getTheme, saveTheme, type ThemeConfig, DEFAULT_THEME } from './theme-storage'
-import { getFavorites, saveFavorites, getAreaOrder, saveAreaOrder, getEntityAreaOverrides, setEntityAreaOverrides, getCustomAreas, saveCustomAreas, type EntityAreaOverrides, type CustomArea } from './area-storage'
+import { getFavorites, saveFavorites, getAreaOrder, saveAreaOrder, getEntityAreaOverrides, setEntityAreaOverrides, getCustomAreas, saveCustomAreas, getAreaImages, saveAreaImages, type EntityAreaOverrides, type CustomArea, type AreaImages } from './area-storage'
 import { getEntityIcons, saveEntityIcons, type EntityIconMap } from './icon-storage'
 import { getEntityLabels, saveEntityLabels, type EntityLabelMap } from './label-storage'
 import { getTileSizes, saveTileSizes, type EntityTileSizes } from './tile-sizes'
@@ -21,6 +21,7 @@ export interface UserSettings {
   floorplans?: FloorplanMap
   entityAreaOverrides?: EntityAreaOverrides
   customAreas?: CustomArea[]
+  areaImages?: AreaImages
 }
 
 export function collectUserSettings(): UserSettings {
@@ -37,6 +38,7 @@ export function collectUserSettings(): UserSettings {
     floorplans: getFloorplans(),
     entityAreaOverrides: getEntityAreaOverrides(),
     customAreas: getCustomAreas(),
+    areaImages: getAreaImages(),
   }
 }
 
@@ -54,6 +56,7 @@ export function applyServerSettings(s: UserSettings): void {
   if (s.floorplans) saveFloorplans(s.floorplans)
   if (s.entityAreaOverrides) setEntityAreaOverrides(s.entityAreaOverrides)
   if (s.customAreas) saveCustomAreas(s.customAreas)
+  if (s.areaImages) saveAreaImages(s.areaImages)
 }
 
 /** Load settings from server for a given userId. Returns null on failure. */

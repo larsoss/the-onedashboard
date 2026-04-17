@@ -55,7 +55,7 @@ app.use('/ha-api', (req, res) => {
 
 const fs = require('fs');
 
-app.use('/dashboard-api', express.json({ limit: '2mb' }));
+app.use('/dashboard-api', express.json({ limit: '20mb' }));
 
 // Return the HA user ID injected by the Supervisor ingress proxy
 app.get('/dashboard-api/whoami', (req, res) => {
