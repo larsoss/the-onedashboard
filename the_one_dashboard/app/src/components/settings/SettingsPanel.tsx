@@ -514,39 +514,8 @@ function OptionRow<T extends string>({
 
 const HEADER_STORAGE_KEY = 'hk_hide_ha_header'
 
-// JS injected via browser_mod.javascript — runs in the HA parent frame.
-// Injects a <style> tag into home-assistant-main's shadow root, which is the
-// most reliable way to hide the header across all HA versions.
-const HIDE_HEADER_CODE = [
-  `(function(){`,
-  `try{`,
-  `var main=document.querySelector('home-assistant')`,
-  `?.shadowRoot?.querySelector('home-assistant-main');`,
-  `if(!main||!main.shadowRoot)return;`,
-  `if(main.shadowRoot.getElementById('__tod_hh__'))return;`,
-  `var s=document.createElement('style');`,
-  `s.id='__tod_hh__';`,
-  `s.textContent='app-header,app-toolbar,.header,[class*="toolbar"]{display:none!important}',`,
-  `main.shadowRoot.appendChild(s);`,
-  `}catch(e){}`,
-  `})();`,
-].join('')
-
-const SHOW_HEADER_CODE = [
-  `(function(){`,
-  `try{`,
-  `var main=document.querySelector('home-assistant')`,
-  `?.shadowRoot?.querySelector('home-assistant-main');`,
-  `if(main&&main.shadowRoot){`,
-  `var s=main.shadowRoot.getElementById('__tod_hh__');`,
-  `if(s)s.remove();`,
-  `}`,
-  `}catch(e){}`,
-  `})();`,
-].join('')
-
 function AppearanceSection() {
-  const { theme, setTheme, callService } = useHA()
+  const { theme, setTheme } = useHA()
   const hue = theme.accent
 
   const [headerHidden, setHeaderHidden] = useState(() =>
@@ -557,7 +526,11 @@ function AppearanceSection() {
     const next = !headerHidden
     setHeaderHidden(next)
     localStorage.setItem(HEADER_STORAGE_KEY, String(next))
-    callService('browser_mod', 'javascript', { code: next ? HIDE_HEADER_CODE : SHOW_HEADER_CODE })
+    if (next) {
+      import('@/lib/hide-header').then(({ startHidingHeader }) => startHidingHeader())
+    } else {
+      import('@/lib/hide-header').then(({ stopHidingHeader }) => stopHidingHeader())
+    }
   }
 
   const applyMood = (mood: ColorMood) => {
@@ -663,32 +636,32 @@ function AppearanceSection() {
       </div>
       </div>{/* end fine-tune section */}
 
-      {/* Browser Mod */}
+      {/* Topbar */}
       <div>
         <p className="text-xs font-semibold text-ios-secondary uppercase tracking-wider mb-3 px-1">
-          Browser Mod
+          Weergave
         </p>
         <div className="bg-ios-card rounded-2xl p-4">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-4">
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-ios-label">Verberg HA topbar</p>
-              <p className="text-xs text-ios-secondary mt-1 leading-snug">
-                Verbergt de witte balk bovenaan. Vereist de{' '}
-                <span className="text-ios-label/70 font-medium">Browser Mod</span> integratie.
+              <p className="text-xs text-ios-secondary mt-0.5 leading-snug">
+                Verbergt de witte balk bovenaan in het HA-venster.
               </p>
             </div>
+            {/* iOS-style toggle */}
             <button
               onClick={toggleHeader}
               aria-label="Topbar aan/uit"
               className={cn(
-                'relative w-12 h-7 rounded-full transition-colors duration-200 shrink-0',
+                'relative flex-none w-[51px] h-[31px] rounded-full transition-colors duration-200',
                 headerHidden ? 'bg-ios-green' : 'bg-white/20'
               )}
             >
               <span
                 className={cn(
-                  'absolute top-0.5 h-6 w-6 rounded-full bg-white shadow-md transition-transform duration-200',
-                  headerHidden ? 'translate-x-5' : 'translate-x-0.5'
+                  'absolute top-[2px] left-[2px] w-[27px] h-[27px] rounded-full bg-white shadow transition-transform duration-200',
+                  headerHidden ? 'translate-x-[20px]' : 'translate-x-0'
                 )}
               />
             </button>
