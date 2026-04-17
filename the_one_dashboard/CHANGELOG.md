@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.14] - 2026-04-17
+
+- fix: redesign edit mode overlay — clean layout with name + icon buttons
+
 ## [2.0.13] - 2026-04-17
 
 - fix: switch analytics key to legacy JWT anon key (no origin restrictions)
