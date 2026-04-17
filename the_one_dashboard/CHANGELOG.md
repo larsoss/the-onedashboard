@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.7] - 2026-04-17
+
+- fix: sync area background images across devices
+
 ## [2.0.6] - 2026-04-16
 
 - Merge remote-tracking branch 'github/main' into claude/homekit-dashboard-xSgWd
