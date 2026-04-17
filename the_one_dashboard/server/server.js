@@ -7,10 +7,10 @@ const { WebSocket, WebSocketServer } = require('ws');
 const { randomUUID } = require('crypto');
 
 // ── Anonymous install analytics (Supabase) ────────────────────────────────────
-// Uses the publishable (anon) key — safe for open-source repos.
+// Uses the legacy anon (public) JWT key — no origin restrictions.
 // The upsert_install RPC is security definer so the anon role can call it.
 const ANALYTICS_RPC = 'https://odggqtlpezuourmxrgvi.supabase.co/rest/v1/rpc/upsert_install';
-const ANALYTICS_KEY = 'sb_publishable_Alful9_DkwmXHinKay65Bg_JD9v5qg6';
+const ANALYTICS_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kZ2dxdGxwZXp1b3VybXhyZ3ZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNzU4MDYsImV4cCI6MjA5MTk1MTgwNn0.-DAleBZkwf-hbyNw3f6zVUH4GSy6ujEOC2P2EkLpOaE';
 
 function getInstallId() {
   const file = path.join('/data', 'installation_id');
