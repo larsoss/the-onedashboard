@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.9] - 2026-04-17
+
+- fix: hide HA topbar without Browser Mod + fix toggle button sizing
+
 ## [2.0.8] - 2026-04-17
 
 - fix: sync all settings across devices (personConfigs, floorplans, settingsVersion)

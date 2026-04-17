@@ -4,6 +4,45 @@ const express = require('express');
 const http = require('http');
 const path = require('path');
 const { WebSocket, WebSocketServer } = require('ws');
+const { randomUUID } = require('crypto');
+
+// ── Anonymous install analytics (Supabase) ────────────────────────────────────
+// Uses the publishable (anon) key — safe for open-source repos.
+// The upsert_install RPC is security definer so the anon role can call it.
+const ANALYTICS_RPC = 'https://odggqtlpezuourmxrgvi.supabase.co/rest/v1/rpc/upsert_install';
+const ANALYTICS_KEY = 'sb_publishable_Alful9_DkwmXHinKay65Bg_JD9v5qg6';
+
+function getInstallId() {
+  const file = path.join('/data', 'installation_id');
+  try {
+    if (require('fs').existsSync(file)) return require('fs').readFileSync(file, 'utf8').trim();
+  } catch { /* ignore */ }
+  const id = randomUUID();
+  try { require('fs').writeFileSync(file, id); } catch { /* ignore */ }
+  return id;
+}
+
+async function pingAnalytics() {
+  try {
+    const { version } = require('./package.json');
+    await fetch(ANALYTICS_RPC, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': ANALYTICS_KEY,
+        'Authorization': `Bearer ${ANALYTICS_KEY}`,
+      },
+      body: JSON.stringify({
+        p_installation_id: getInstallId(),
+        p_version: version,
+        p_arch: process.arch,
+      }),
+    });
+  } catch { /* silent — analytics never breaks the dashboard */ }
+}
+
+setTimeout(pingAnalytics, 8000);                           // 8s after boot
+setInterval(pingAnalytics, 24 * 60 * 60 * 1000);          // then every 24 h
 
 // Read port from HA options file (set by user in add-on config), fallback to env/default
 function readOptionsPort() {
