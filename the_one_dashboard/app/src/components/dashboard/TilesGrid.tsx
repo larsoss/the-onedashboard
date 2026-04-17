@@ -201,63 +201,72 @@ function EditOverlay({ entityId, tileRef, currentSpan, onPreviewChange }: EditOv
 
   return (
     <>
-      <div className="absolute inset-0 z-10 rounded-2xl flex flex-col items-center justify-center gap-2 bg-black/55 backdrop-blur-[2px] pointer-events-none">
-        {/* Drag-reorder handle (top center) */}
-        <div className="pointer-events-auto absolute top-1.5 left-1/2 -translate-x-1/2 cursor-grab active:cursor-grabbing">
-          <GripVertical className="w-4 h-4 text-white/60" />
+      <div className="absolute inset-0 z-10 rounded-2xl bg-black/60 backdrop-blur-[2px] pointer-events-none flex flex-col">
+
+        {/* Top bar: drag handle (center) + size badge (right, only while resizing) */}
+        <div className="flex items-center justify-between px-2 pt-1.5 shrink-0">
+          <div className="w-5" />
+          <div className="pointer-events-auto cursor-grab active:cursor-grabbing">
+            <GripVertical className="w-4 h-4 text-white/40" />
+          </div>
+          <div className="w-5 flex justify-end">
+            {isResizing && (
+              <span className="text-[10px] font-mono font-bold text-ios-blue leading-none">
+                {currentSpan}
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Size indicator — only visible while actively resizing */}
-        {isResizing && (
-          <span className="text-[11px] font-mono font-bold absolute top-2 right-2 text-ios-blue">
-            {currentSpan}
-          </span>
-        )}
-
-        {/* Entity name */}
-        <p className="text-[11px] font-semibold text-white text-center px-2 leading-tight max-w-full truncate absolute top-7">
-          {label}
-        </p>
-
-        {/* Icon + Heart + Hide buttons */}
-        <div className="flex gap-1.5 pointer-events-auto">
-          <button
-            onClick={(e) => { e.stopPropagation(); setShowIconPicker(true) }}
-            className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white/20 text-white hover:bg-white/30 flex items-center gap-1"
-          >
-            <Activity className="w-3 h-3" />
-            {t('icon')}
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); toggleFavorite(entityId) }}
-            className="px-2 py-1.5 rounded-lg text-xs font-medium bg-white/20 text-white hover:bg-white/30 flex items-center gap-1"
-            title={isFavorited ? t('rem_favorites') : t('add_favorites')}
-          >
-            <Heart className={cn('w-3 h-3', isFavorited ? 'fill-ios-red text-ios-red' : '')} />
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); toggleHideEntity(entityId) }}
-            className="px-2 py-1.5 rounded-lg text-xs font-medium bg-red-500/60 text-white hover:bg-red-500/80 flex items-center gap-1"
-            title={t('hide_entity')}
-          >
-            <EyeOff className="w-3 h-3" />
-          </button>
+        {/* Entity name — centered in remaining space */}
+        <div className="flex-1 flex items-center justify-center px-2 min-h-0">
+          <p className="text-[11px] font-semibold text-white text-center leading-snug line-clamp-2">
+            {label}
+          </p>
         </div>
 
-        {/* Resize handle — bottom-right corner */}
-        <div
-          className={cn(
-            'pointer-events-auto absolute bottom-1.5 right-1.5 cursor-nwse-resize',
-            'w-6 h-6 rounded-lg flex items-center justify-center',
-            'transition-colors',
-            isResizing ? 'bg-ios-blue/80' : 'bg-white/20 hover:bg-white/40',
-          )}
-          onPointerDown={onResizePointerDown}
-          onPointerMove={onResizePointerMove}
-          onPointerUp={onResizePointerUp}
-          title={t('drag_resize')}
-        >
-          <GripHorizontal className="w-3.5 h-3.5 text-white rotate-45" />
+        {/* Bottom bar: action buttons (left) + resize handle (right) */}
+        <div className="flex items-center justify-between px-1.5 pb-1.5 shrink-0 pointer-events-auto">
+          <div className="flex gap-1">
+            {/* Icon picker */}
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowIconPicker(true) }}
+              className="w-7 h-7 rounded-lg bg-white/20 hover:bg-white/35 flex items-center justify-center"
+              title={t('icon')}
+            >
+              <Activity className="w-3.5 h-3.5 text-white" />
+            </button>
+            {/* Favourite */}
+            <button
+              onClick={(e) => { e.stopPropagation(); toggleFavorite(entityId) }}
+              className="w-7 h-7 rounded-lg bg-white/20 hover:bg-white/35 flex items-center justify-center"
+              title={isFavorited ? t('rem_favorites') : t('add_favorites')}
+            >
+              <Heart className={cn('w-3.5 h-3.5', isFavorited ? 'fill-ios-red text-ios-red' : 'text-white')} />
+            </button>
+            {/* Hide */}
+            <button
+              onClick={(e) => { e.stopPropagation(); toggleHideEntity(entityId) }}
+              className="w-7 h-7 rounded-lg bg-red-500/70 hover:bg-red-500/90 flex items-center justify-center"
+              title={t('hide_entity')}
+            >
+              <EyeOff className="w-3.5 h-3.5 text-white" />
+            </button>
+          </div>
+
+          {/* Resize handle */}
+          <div
+            className={cn(
+              'w-7 h-7 rounded-lg flex items-center justify-center cursor-nwse-resize transition-colors',
+              isResizing ? 'bg-ios-blue/80' : 'bg-white/20 hover:bg-white/35',
+            )}
+            onPointerDown={onResizePointerDown}
+            onPointerMove={onResizePointerMove}
+            onPointerUp={onResizePointerUp}
+            title={t('drag_resize')}
+          >
+            <GripHorizontal className="w-3.5 h-3.5 text-white rotate-45" />
+          </div>
         </div>
       </div>
       {showIconPicker && (
