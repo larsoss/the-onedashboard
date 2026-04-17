@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.12] - 2026-04-17
+
+- fix: show entity name in edit mode overlay, hide size label when idle
+
 ## [2.0.10] - 2026-04-17
 
 - feat: anonymous install analytics via Supabase
