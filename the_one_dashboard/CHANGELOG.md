@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.15] - 2026-04-17
+
+- feat: add Cyber Glass mood + neon glow toggle for glass tiles
+
 ## [2.0.14] - 2026-04-17
 
 - fix: redesign edit mode overlay — clean layout with name + icon buttons
