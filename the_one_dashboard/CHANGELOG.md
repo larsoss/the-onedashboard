@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.8] - 2026-04-17
+
+- fix: sync all settings across devices (personConfigs, floorplans, settingsVersion)
+
 ## [2.0.7] - 2026-04-17
 
 - fix: sync area background images across devices
