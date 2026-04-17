@@ -56,6 +56,7 @@ export function BaseTile({
   const isGlass = theme.tileStyle === 'glass'
   const opacity = theme.tileOpacity / 100
   const isCompact = theme.tileSize === 'compact'
+  const glow = isGlass && theme.tileGlow
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const didLongPress = useRef(false)
@@ -86,19 +87,30 @@ export function BaseTile({
   const tintRgb = customTintRgb ?? GLASS_TINT_RGB[activeColor]
 
   // Compute background via inline style so opacity is fully dynamic
+  const glowRgb = tintRgb !== GLASS_TINT_RGB.none ? tintRgb : '0,200,255'
   const bgStyle: React.CSSProperties = isGlass
     ? isActive
       ? {
-          background: `rgba(${tintRgb},${(activeColor === 'none' && !customTintRgb ? 0.12 : 0.22) * opacity})`,
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          border: `1px solid rgba(255,255,255,${0.18 * opacity})`,
+          background: `rgba(${tintRgb},${(activeColor === 'none' && !customTintRgb ? 0.14 : 0.25) * opacity})`,
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          border: glow
+            ? `1px solid rgba(${glowRgb},0.45)`
+            : `1px solid rgba(255,255,255,${0.18 * opacity})`,
+          boxShadow: glow
+            ? `0 0 18px rgba(${glowRgb},0.25), inset 0 0 20px rgba(255,255,255,0.04)`
+            : undefined,
         }
       : {
-          background: `rgba(255,255,255,${0.06 * opacity})`,
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          border: `1px solid rgba(255,255,255,${0.10 * opacity})`,
+          background: `rgba(255,255,255,${0.07 * opacity})`,
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          border: glow
+            ? `1px solid rgba(0,200,255,0.20)`
+            : `1px solid rgba(255,255,255,${0.10 * opacity})`,
+          boxShadow: glow
+            ? `0 0 12px rgba(0,180,255,0.12), inset 0 0 16px rgba(255,255,255,0.03)`
+            : undefined,
         }
     : isActive
       ? { background: `rgba(${tintRgb},${0.22 * opacity})` }

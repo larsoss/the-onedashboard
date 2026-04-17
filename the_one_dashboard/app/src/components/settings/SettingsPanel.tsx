@@ -540,6 +540,7 @@ function AppearanceSection() {
       bgStyle: mood.bgStyle,
       tileStyle: mood.tileStyle,
       tileOpacity: mood.tileOpacity,
+      tileGlow: mood.tileGlow ?? false,
       moodId: mood.id,
     })
   }
@@ -634,6 +635,32 @@ function AppearanceSection() {
           <span className="text-[11px] text-ios-secondary">{t('opaque')}</span>
         </div>
       </div>
+
+      {/* Neon glow toggle */}
+      {theme.tileStyle === 'glass' && (
+        <div className="bg-ios-card rounded-2xl p-4">
+          <div className="flex items-center gap-4">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-ios-label">Neon glow</p>
+              <p className="text-xs text-ios-secondary mt-0.5 leading-snug">
+                Gloeiende neon rand op glasstegels
+              </p>
+            </div>
+            <button
+              onClick={() => setTheme({ ...theme, tileGlow: !theme.tileGlow, moodId: undefined })}
+              className={cn(
+                'relative flex-none w-[51px] h-[31px] rounded-full transition-colors duration-200',
+                theme.tileGlow ? 'bg-ios-green' : 'bg-white/20'
+              )}
+            >
+              <span className={cn(
+                'absolute top-[2px] left-[2px] w-[27px] h-[27px] rounded-full bg-white shadow transition-transform duration-200',
+                theme.tileGlow ? 'translate-x-[20px]' : 'translate-x-0'
+              )} />
+            </button>
+          </div>
+        </div>
+      )}
       </div>{/* end fine-tune section */}
 
       {/* Topbar */}

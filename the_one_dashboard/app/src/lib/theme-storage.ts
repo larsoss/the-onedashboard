@@ -1,5 +1,5 @@
 export type TileStyle = 'glass' | 'solid'
-export type BgStyle = 'dark' | 'black' | 'navy' | 'slate' | 'warm' | 'purple' | 'forest'
+export type BgStyle = 'dark' | 'black' | 'navy' | 'slate' | 'warm' | 'purple' | 'forest' | 'cyber'
 export type TileSize = 'compact' | 'normal' | 'large'
 export type TileShape = 'square' | 'rect'
 export type IconSize = 'small' | 'medium' | 'large'
@@ -13,6 +13,7 @@ export interface ThemeConfig {
   tileShape: TileShape
   iconSize: IconSize
   tileOpacity: number   // 10–100
+  tileGlow: boolean     // neon border glow on glass tiles
   moodId?: string       // currently active mood preset (undefined = custom)
 }
 
@@ -24,6 +25,7 @@ export const DEFAULT_THEME: ThemeConfig = {
   tileShape: 'square',
   iconSize: 'medium',
   tileOpacity: 80,
+  tileGlow: false,
   moodId: 'ios-dark',
 }
 
@@ -40,6 +42,7 @@ export interface ColorMood {
   bgStyle: BgStyle
   tileStyle: TileStyle
   tileOpacity: number
+  tileGlow?: boolean
 }
 
 export const COLOR_MOODS: ColorMood[] = [
@@ -99,6 +102,13 @@ export const COLOR_MOODS: ColorMood[] = [
     swatches: ['#FF453A', '#FF6B35', '#FF9F0A', '#661100', '#2A0500'],
     accent: 15, bgStyle: 'warm', tileStyle: 'glass', tileOpacity: 80,
   },
+  {
+    id: 'cyber',
+    name: 'Cyber Glass',
+    desc: 'Neon · Holographic · Futuristic',
+    swatches: ['#00E5FF', '#7B2FFF', '#FF2D78', '#0D1040', '#060820'],
+    accent: 190, bgStyle: 'cyber', tileStyle: 'glass', tileOpacity: 70, tileGlow: true,
+  },
 ]
 
 /** Named hue values for backward compat with old stored strings */
@@ -133,6 +143,8 @@ export function getTheme(): ThemeConfig {
     const merged = { ...DEFAULT_THEME, ...raw } as ThemeConfig
     // Migrate legacy string accent → hue number
     merged.accent = resolveAccentHue(raw.accent ?? merged.accent)
+    // Default tileGlow to false for existing installs
+    if (typeof merged.tileGlow !== 'boolean') merged.tileGlow = false
     return merged
   } catch {
     return DEFAULT_THEME
@@ -152,6 +164,7 @@ export const BG_VALUES: Record<BgStyle, string> = {
   warm:   'radial-gradient(ellipse at 30% 0%, #2a1a08 0%, #1a0e04 60%, #0d0700 100%)',
   purple: 'radial-gradient(ellipse at 50% 0%, #1a0a2e 0%, #0f0620 60%, #060311 100%)',
   forest: 'linear-gradient(145deg, #0a1f0d 0%, #061209 60%, #020805 100%)',
+  cyber:  'radial-gradient(ellipse at 20% 10%, #1a0a38 0%, #0d1040 35%, #060c20 65%, #030610 100%)',
 }
 
 export const BG_PREVIEW: Record<BgStyle, string> = {
@@ -162,6 +175,7 @@ export const BG_PREVIEW: Record<BgStyle, string> = {
   warm:   '#1a0e04',
   purple: '#0f0620',
   forest: '#0a1f0d',
+  cyber:  '#0d1040',
 }
 
 /** Responsive grid column classes per tile size.
