@@ -119,6 +119,8 @@ interface HAContextValue {
   areaImages: AreaImages
   saveAreaImage: (areaId: string, dataUrl: string) => void
   removeAreaImage: (areaId: string) => void
+  /** Bumped after selectUser completes so tiles can reload localStorage-based state */
+  settingsVersion: number
 }
 
 const HAContext = createContext<HAContextValue>({
@@ -158,6 +160,7 @@ const HAContext = createContext<HAContextValue>({
   areaImages: {},
   saveAreaImage: () => undefined,
   removeAreaImage: () => undefined,
+  settingsVersion: 0,
 })
 
 export function HAProvider({ children }: { children: React.ReactNode }) {
@@ -183,6 +186,7 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
   const [hiddenEntities, setHiddenEntitiesState] = useState<string[]>(getHiddenEntities)
   const [entityOrder, setEntityOrderState] = useState<EntityOrderMap>(getEntityOrder)
   const [areaImages, setAreaImages] = useState<AreaImages>(getAreaImages)
+  const [settingsVersion, setSettingsVersion] = useState(0)
   const clientRef = useRef<HAClient | null>(null)
 
   // Apply background CSS variable whenever bgStyle changes
@@ -428,6 +432,7 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
     setEntityAreaOverrides(getEntityAreaOverrides())
     setCustomAreas(getCustomAreas())
     setAreaImages(getAreaImages())
+    setSettingsVersion((v) => v + 1)
   }, [])
 
   // Auto-detect logged-in HA user via ingress header, fall back to stored ID,
@@ -492,6 +497,7 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
         areaImages,
         saveAreaImage,
         removeAreaImage,
+        settingsVersion,
       }}
     >
       {children}

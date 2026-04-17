@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Map, X, ImagePlus } from 'lucide-react'
 import { useHA } from '@/hooks/useHAClient'
 import { getDomain, entityLabel } from '@/lib/utils'
@@ -31,12 +31,18 @@ interface FloorplanTileProps {
 }
 
 export function FloorplanTile({ fpId }: FloorplanTileProps) {
-  const { entities, isEditMode, callService, entityLabels } = useHA()
+  const { entities, isEditMode, callService, entityLabels, settingsVersion } = useHA()
   const [config, setConfig] = useState<FloorplanConfig>(() => {
     return getFloorplans()[fpId] ?? { imageUrl: '', hotspots: [] }
   })
   const [showImageInput, setShowImageInput] = useState(false)
   const [imageInputValue, setImageInputValue] = useState(config.imageUrl)
+
+  useEffect(() => {
+    const cfg = getFloorplans()[fpId] ?? { imageUrl: '', hotspots: [] }
+    setConfig(cfg)
+    setImageInputValue(cfg.imageUrl)
+  }, [settingsVersion, fpId])
   const [pendingHotspot, setPendingHotspot] = useState<{ x: number; y: number } | null>(null)
   const [pendingEntitySearch, setPendingEntitySearch] = useState('')
   const imgRef = useRef<HTMLDivElement>(null)

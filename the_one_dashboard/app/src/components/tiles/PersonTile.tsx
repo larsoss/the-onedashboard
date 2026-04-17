@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   Home, MapPin, MapPinOff, Battery, BatteryCharging, BatteryLow,
   Wifi, WifiOff, Footprints, Volume2, VolumeX, Vibrate,
@@ -9,6 +9,7 @@ import { useHA } from '@/hooks/useHAClient'
 import { entityLabel, getDomain } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { getPersonConfigs, savePersonConfigs, type PersonConfig } from '@/lib/person-storage'
+import { scheduleSyncToServer } from '@/lib/user-context'
 
 // ── Activity icon ─────────────────────────────────────────────────────────────
 
@@ -246,9 +247,13 @@ interface PersonTileProps {
 }
 
 export function PersonTile({ entityId }: PersonTileProps) {
-  const { entities, theme, entityLabels } = useHA()
+  const { entities, theme, entityLabels, settingsVersion } = useHA()
   const [configOpen, setConfigOpen] = useState(false)
   const [config, setConfig] = useState<PersonConfig>(() => getPersonConfigs()[entityId] ?? {})
+
+  useEffect(() => {
+    setConfig(getPersonConfigs()[entityId] ?? {})
+  }, [settingsVersion, entityId])
 
   const entity = entities[entityId]
   if (!entity) return null
@@ -318,8 +323,8 @@ export function PersonTile({ entityId }: PersonTileProps) {
 
   const handleSave = (cfg: PersonConfig) => {
     setConfig(cfg)
-    const all = getPersonConfigs()
-    savePersonConfigs({ ...all, [entityId]: cfg })
+    savePersonConfigs({ ...getPersonConfigs(), [entityId]: cfg })
+    scheduleSyncToServer()
     setConfigOpen(false)
   }
 
