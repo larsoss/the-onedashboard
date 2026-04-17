@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.13] - 2026-04-17
+
+- fix: switch analytics key to legacy JWT anon key (no origin restrictions)
+
 ## [2.0.12] - 2026-04-17
 
 - fix: show entity name in edit mode overlay, hide size label when idle
