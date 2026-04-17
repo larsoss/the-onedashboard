@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 import type { HassEntity } from '@/types/ha-types'
-import { getDomain } from '@/lib/utils'
+import { getDomain, entityLabel } from '@/lib/utils'
 import { LightTile } from '@/components/tiles/LightTile'
 import { SwitchTile } from '@/components/tiles/SwitchTile'
 import { ThermostatTile } from '@/components/tiles/ThermostatTile'
@@ -151,7 +151,7 @@ interface EditOverlayProps {
 }
 
 function EditOverlay({ entityId, tileRef, currentSpan, onPreviewChange }: EditOverlayProps) {
-  const { entityTileSizes, setEntityTileSize, toggleHideEntity, toggleFavorite, favorites } = useHA()
+  const { entityTileSizes, setEntityTileSize, toggleHideEntity, toggleFavorite, favorites, entities, entityLabels } = useHA()
   const [showIconPicker, setShowIconPicker] = useState(false)
   const current = entityTileSizes[entityId] ?? '1x1'
   const isFavorited = favorites.includes(entityId)
@@ -196,29 +196,36 @@ function EditOverlay({ entityId, tileRef, currentSpan, onPreviewChange }: EditOv
   }, [entityId, setEntityTileSize, onPreviewChange])
 
   const isResizing = currentSpan !== current
+  const entity = entities[entityId]
+  const label = entityLabel(entityId, entity?.attributes?.friendly_name as string, entityLabels)
 
   return (
     <>
-      <div className="absolute inset-0 z-10 rounded-2xl flex flex-col items-center justify-center gap-2 bg-black/50 backdrop-blur-[2px] pointer-events-none">
+      <div className="absolute inset-0 z-10 rounded-2xl flex flex-col items-center justify-center gap-2 bg-black/55 backdrop-blur-[2px] pointer-events-none">
         {/* Drag-reorder handle (top center) */}
-        <div className="pointer-events-auto absolute top-2 left-1/2 -translate-x-1/2 cursor-grab">
+        <div className="pointer-events-auto absolute top-1.5 left-1/2 -translate-x-1/2 cursor-grab active:cursor-grabbing">
           <GripVertical className="w-4 h-4 text-white/60" />
         </div>
 
-        {/* Current size indicator — shows target size during resize */}
-        <span className={cn(
-          'text-[10px] font-mono absolute top-2 right-2 transition-colors',
-          isResizing ? 'text-ios-blue font-bold' : 'text-white/50'
-        )}>
-          {currentSpan}
-        </span>
+        {/* Size indicator — only visible while actively resizing */}
+        {isResizing && (
+          <span className="text-[11px] font-mono font-bold absolute top-2 right-2 text-ios-blue">
+            {currentSpan}
+          </span>
+        )}
+
+        {/* Entity name */}
+        <p className="text-[11px] font-semibold text-white text-center px-2 leading-tight max-w-full truncate absolute top-7">
+          {label}
+        </p>
 
         {/* Icon + Heart + Hide buttons */}
         <div className="flex gap-1.5 pointer-events-auto">
           <button
             onClick={(e) => { e.stopPropagation(); setShowIconPicker(true) }}
-            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white/20 text-white hover:bg-white/30"
+            className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white/20 text-white hover:bg-white/30 flex items-center gap-1"
           >
+            <Activity className="w-3 h-3" />
             {t('icon')}
           </button>
           <button

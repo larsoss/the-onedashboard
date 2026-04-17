@@ -1,6 +1,6 @@
 {
   "name": "the-one-dashboard-server",
-  "version": "2.0.11",
+  "version": "2.0.12",
   "type": "commonjs",
   "dependencies": {
     "express": "^4.21.0",
