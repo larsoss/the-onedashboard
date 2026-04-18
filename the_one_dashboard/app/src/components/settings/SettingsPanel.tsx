@@ -514,23 +514,43 @@ function OptionRow<T extends string>({
 
 const HEADER_STORAGE_KEY = 'hk_hide_ha_header'
 
+// JavaScript that Browser Mod runs in the HA main window (not in our iframe)
+const INJECT_JS = `
+(function() {
+  var ha = document.querySelector('home-assistant');
+  var main = ha && ha.shadowRoot && ha.shadowRoot.querySelector('home-assistant-main');
+  var root = main && main.shadowRoot;
+  if (!root) return;
+  if (root.getElementById('__tod_hh__')) return;
+  var s = document.createElement('style');
+  s.id = '__tod_hh__';
+  s.textContent = 'app-header,app-toolbar,ha-top-app-bar-fixed{display:none!important}partial-panel-resolver{padding-top:0!important}:host{--header-height:0px!important}';
+  root.appendChild(s);
+})();
+`
+
+const REMOVE_JS = `
+(function() {
+  var ha = document.querySelector('home-assistant');
+  var main = ha && ha.shadowRoot && ha.shadowRoot.querySelector('home-assistant-main');
+  var root = main && main.shadowRoot;
+  if (root) { var s = root.getElementById('__tod_hh__'); if (s) s.remove(); }
+})();
+`
+
 function AppearanceSection() {
-  const { theme, setTheme } = useHA()
+  const { theme, setTheme, callService } = useHA()
   const hue = theme.accent
 
   const [headerHidden, setHeaderHidden] = useState(() =>
     localStorage.getItem(HEADER_STORAGE_KEY) === 'true'
   )
 
-  const toggleHeader = () => {
+  const toggleHeader = async () => {
     const next = !headerHidden
     setHeaderHidden(next)
     localStorage.setItem(HEADER_STORAGE_KEY, String(next))
-    if (next) {
-      import('@/lib/hide-header').then(({ startHidingHeader }) => startHidingHeader())
-    } else {
-      import('@/lib/hide-header').then(({ stopHidingHeader }) => stopHidingHeader())
-    }
+    await callService('browser_mod', 'javascript', { code: next ? INJECT_JS : REMOVE_JS })
   }
 
   const applyMood = (mood: ColorMood) => {

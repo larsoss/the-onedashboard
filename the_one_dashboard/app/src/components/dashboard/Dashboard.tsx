@@ -661,7 +661,7 @@ export function Dashboard() {
   const {
     status, entities, resolveEntityArea, currentUserId, haUsers, selectUser,
     isEditMode, toggleEditMode, hiddenEntities, toggleHideEntity,
-    haAreas, customAreas,
+    haAreas, customAreas, callService,
   } = useHA()
 
   // Read URL query params once on mount
@@ -674,14 +674,13 @@ export function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
 
-  // Auto-apply topbar hide on mount (no Browser Mod needed — same-origin iframe)
+  // Re-apply topbar hide via Browser Mod once connected
   useEffect(() => {
+    if (status !== 'connected') return
     if (localStorage.getItem('hk_hide_ha_header') !== 'true') return
-    import('@/lib/hide-header').then(({ startHidingHeader }) => startHidingHeader())
-    return () => {
-      import('@/lib/hide-header').then(({ stopHidingHeader }) => stopHidingHeader())
-    }
-  }, [])
+    const INJECT_JS = `(function(){var ha=document.querySelector('home-assistant');var main=ha&&ha.shadowRoot&&ha.shadowRoot.querySelector('home-assistant-main');var root=main&&main.shadowRoot;if(!root||root.getElementById('__tod_hh__'))return;var s=document.createElement('style');s.id='__tod_hh__';s.textContent='app-header,app-toolbar,ha-top-app-bar-fixed{display:none!important}partial-panel-resolver{padding-top:0!important}:host{--header-height:0px!important}';root.appendChild(s);})();`
+    callService('browser_mod', 'javascript', { code: INJECT_JS })
+  }, [status, callService])
 
   // Undo-hide: track the last entity that was newly hidden while in edit mode
   const prevHiddenRef = useRef<string[]>(hiddenEntities)
