@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.18] - 2026-04-18
+
+- fix: use Browser Mod javascript service to hide HA topbar
+
 ## [2.0.17] - 2026-04-18
 
 - fix: reliable cross-device settings sync
