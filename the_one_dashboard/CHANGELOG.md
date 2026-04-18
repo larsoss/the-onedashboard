@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.16] - 2026-04-18
+
+- docs: rewrite README — shorter, working screenshots via raw GitHub URLs
+
 ## [2.0.15] - 2026-04-17
 
 - feat: add Cyber Glass mood + neon glow toggle for glass tiles
