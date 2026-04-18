@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.17] - 2026-04-18
+
+- fix: reliable cross-device settings sync
+
 ## [2.0.16] - 2026-04-18
 
 - docs: rewrite README — shorter, working screenshots via raw GitHub URLs
