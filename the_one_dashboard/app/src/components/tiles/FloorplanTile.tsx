@@ -6,6 +6,7 @@ import {
   getFloorplans, saveFloorplans,
   type FloorplanConfig, type FloorplanHotspot,
 } from '@/lib/floorplan-storage'
+import { scheduleSyncToServer } from '@/lib/user-context'
 import { cn } from '@/lib/utils'
 
 const ACTIVE_COLOR: Record<string, string> = {
@@ -52,6 +53,7 @@ export function FloorplanTile({ fpId }: FloorplanTileProps) {
     const all = getFloorplans()
     all[fpId] = cfg
     saveFloorplans(all)
+    scheduleSyncToServer()
   }
 
   const handleImageClick = (e: React.MouseEvent) => {
