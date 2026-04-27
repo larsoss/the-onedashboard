@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.20] - 2026-04-27
+
+- feat: widget system — explicit per-area widgets with Add Widget picker
+
 ## [2.0.19] - 2026-04-27
 
 - feat: redesign calendar tile + add calendar section to sidebar
