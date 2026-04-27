@@ -1,12 +1,14 @@
 import { useState, useEffect, useMemo } from 'react'
 import {
   X, Lightbulb, ToggleRight, DoorOpen,
-  Bell, BellOff, Cloud,
+  Bell, BellOff, Cloud, CalendarDays, Clock, MapPin,
 } from 'lucide-react'
 import { useHA } from '@/hooks/useHAClient'
 import { getDomain, entityLabel } from '@/lib/utils'
 import { cn } from '@/lib/utils'
-import type { WeatherAttributes } from '@/types/ha-types'
+import type { WeatherAttributes, CalendarEvent } from '@/types/ha-types'
+import { fetchCalendarEvents } from '@/lib/ha-api'
+import { relativeTime } from '@/components/tiles/CalendarTile'
 import { t, tn } from '@/lib/i18n'
 
 // Greeting based on hour
@@ -41,9 +43,45 @@ interface SidebarProps {
   onNavigate?: (tab: string) => void
 }
 
+const CAL_COLORS = ['#0A84FF', '#30D158', '#FF9F0A', '#BF5AF2', '#FF453A', '#5AC8FA']
+
 export function Sidebar({ open, onClose, onNavigate }: SidebarProps) {
   const { entities, haUsers, currentUserId, callService } = useHA()
   const time = useClock()
+
+  // Calendar events — fetch from all calendar entities
+  const [calEvents, setCalEvents] = useState<Array<{ ev: CalendarEvent; color: string }>>([])
+  const calEntityIds = useMemo(
+    () => Object.keys(entities).filter((id) => id.startsWith('calendar.')),
+    [entities]
+  )
+  useEffect(() => {
+    if (calEntityIds.length === 0) return
+    let cancelled = false
+    Promise.all(
+      calEntityIds.map((id, idx) =>
+        fetchCalendarEvents(id, 7).then((evs) =>
+          evs.map((ev) => ({ ev, color: CAL_COLORS[idx % CAL_COLORS.length] }))
+        ).catch(() => [] as Array<{ ev: CalendarEvent; color: string }>)
+      )
+    ).then((all) => {
+      if (cancelled) return
+      const now = Date.now()
+      const merged = all.flat()
+        .filter(({ ev }) => {
+          const end = ev.end?.dateTime ? new Date(ev.end.dateTime).getTime() : new Date(ev.end?.date ?? '').getTime()
+          return end > now
+        })
+        .sort((a, b) => {
+          const ta = a.ev.start.dateTime ? new Date(a.ev.start.dateTime).getTime() : new Date(a.ev.start.date!).getTime()
+          const tb = b.ev.start.dateTime ? new Date(b.ev.start.dateTime).getTime() : new Date(b.ev.start.date!).getTime()
+          return ta - tb
+        })
+        .slice(0, 5)
+      setCalEvents(merged)
+    })
+    return () => { cancelled = true }
+  }, [calEntityIds.join(',')])
 
   const userName = useMemo(() => {
     if (!currentUserId) return 'there'
@@ -139,6 +177,46 @@ export function Sidebar({ open, onClose, onNavigate }: SidebarProps) {
                   </p>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* Calendar events */}
+          {calEvents.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-ios-secondary uppercase tracking-wider flex items-center gap-1.5">
+                <CalendarDays className="w-3.5 h-3.5" />
+                Agenda
+              </p>
+              {calEvents.map(({ ev, color }, i) => {
+                const isAllDay = !ev.start.dateTime && !!ev.start.date
+                const timeStr  = ev.start.dateTime
+                  ? new Date(ev.start.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  : ''
+                return (
+                  <div key={i} className="relative bg-ios-card-2 rounded-xl overflow-hidden">
+                    <div className="absolute left-0 top-0 bottom-0 w-1" style={{ background: color }} />
+                    <div className="pl-3 pr-3 py-2">
+                      <div className="flex items-start justify-between gap-1">
+                        <p className="text-xs font-semibold text-ios-label leading-snug truncate">{ev.summary}</p>
+                        <span className="text-[10px] text-ios-secondary shrink-0" style={{ color }}>{relativeTime(ev)}</span>
+                      </div>
+                      {timeStr && (
+                        <p className="text-[10px] text-ios-secondary flex items-center gap-1 mt-0.5">
+                          <Clock className="w-2.5 h-2.5 shrink-0" />{timeStr}
+                        </p>
+                      )}
+                      {isAllDay && (
+                        <p className="text-[10px] text-ios-secondary mt-0.5">Hele dag</p>
+                      )}
+                      {ev.location && (
+                        <p className="text-[10px] text-ios-secondary flex items-center gap-1 mt-0.5 truncate">
+                          <MapPin className="w-2.5 h-2.5 shrink-0" />{ev.location}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           )}
 

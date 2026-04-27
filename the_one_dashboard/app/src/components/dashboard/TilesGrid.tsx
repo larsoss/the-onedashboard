@@ -394,7 +394,7 @@ export function TilesGrid({ entities, contextId, className, onAddEntity }: Tiles
     >
       {ordered.map((entity) => {
         const domain = getDomain(entity.entity_id)
-        const defaultSpan = domain === 'person' ? '2x1' : domain === 'media_player' ? '2x2' : '1x1'
+        const defaultSpan = domain === 'person' ? '2x1' : domain === 'media_player' ? '2x2' : domain === 'calendar' ? '2x1' : '1x1'
         const span = entityTileSizes[entity.entity_id] ?? defaultSpan
         const isDragging = dragId === entity.entity_id
         const isDragOver = dragOverId === entity.entity_id && dragId !== entity.entity_id
