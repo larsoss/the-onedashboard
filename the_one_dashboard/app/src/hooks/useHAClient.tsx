@@ -52,6 +52,12 @@ import {
   saveEntityOrder,
   type EntityOrderMap,
 } from '@/lib/entity-order-storage'
+import {
+  getWidgets,
+  saveWidgets,
+  type WidgetMap,
+  type WidgetInstance,
+} from '@/lib/widget-storage'
 import type {
   HassEntity,
   HassArea,
@@ -121,6 +127,9 @@ interface HAContextValue {
   removeAreaImage: (areaId: string) => void
   /** Bumped after selectUser completes so tiles can reload localStorage-based state */
   settingsVersion: number
+  // Widget instances per area
+  widgets: WidgetMap
+  setAreaWidgets: (areaId: string, widgets: WidgetInstance[]) => void
 }
 
 const HAContext = createContext<HAContextValue>({
@@ -161,6 +170,8 @@ const HAContext = createContext<HAContextValue>({
   saveAreaImage: () => undefined,
   removeAreaImage: () => undefined,
   settingsVersion: 0,
+  widgets: {},
+  setAreaWidgets: () => undefined,
 })
 
 export function HAProvider({ children }: { children: React.ReactNode }) {
@@ -187,6 +198,7 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
   const [entityOrder, setEntityOrderState] = useState<EntityOrderMap>(getEntityOrder)
   const [areaImages, setAreaImages] = useState<AreaImages>(getAreaImages)
   const [settingsVersion, setSettingsVersion] = useState(0)
+  const [widgets, setWidgetsState] = useState<WidgetMap>(getWidgets)
   const clientRef = useRef<HAClient | null>(null)
 
   // Apply background CSS variable whenever bgStyle changes
@@ -365,6 +377,15 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
     })
   }, [])
 
+  const setAreaWidgets = useCallback((areaId: string, widgetList: WidgetInstance[]) => {
+    setWidgetsState((prev) => {
+      const next = { ...prev, [areaId]: widgetList }
+      saveWidgets(next)
+      scheduleSyncToServer()
+      return next
+    })
+  }, [])
+
   const saveAreaImage = useCallback((areaId: string, dataUrl: string) => {
     setAreaImages((prev) => {
       const next = { ...prev, [areaId]: dataUrl }
@@ -432,6 +453,7 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
     setEntityAreaOverrides(getEntityAreaOverrides())
     setCustomAreas(getCustomAreas())
     setAreaImages(getAreaImages())
+    setWidgetsState(getWidgets())
     setSettingsVersion((v) => v + 1)
   }, [])
 
@@ -498,6 +520,8 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
         saveAreaImage,
         removeAreaImage,
         settingsVersion,
+        widgets,
+        setAreaWidgets,
       }}
     >
       {children}

@@ -7,6 +7,7 @@ import { getHiddenEntities, saveHiddenEntities } from './hidden-storage'
 import { getEntityOrder, saveEntityOrder, type EntityOrderMap } from './entity-order-storage'
 import { getPersonConfigs, savePersonConfigs, type PersonConfigMap } from './person-storage'
 import { getFloorplans, saveFloorplans, type FloorplanMap } from './floorplan-storage'
+import { getWidgets, saveWidgets, type WidgetMap } from './widget-storage'
 
 export interface UserSettings {
   theme?: ThemeConfig
@@ -22,6 +23,7 @@ export interface UserSettings {
   entityAreaOverrides?: EntityAreaOverrides
   customAreas?: CustomArea[]
   areaImages?: AreaImages
+  widgets?: WidgetMap
 }
 
 export function collectUserSettings(): UserSettings {
@@ -39,6 +41,7 @@ export function collectUserSettings(): UserSettings {
     entityAreaOverrides: getEntityAreaOverrides(),
     customAreas: getCustomAreas(),
     areaImages: getAreaImages(),
+    widgets: getWidgets(),
   }
 }
 
@@ -57,6 +60,7 @@ export function applyServerSettings(s: UserSettings): void {
   if (s.entityAreaOverrides) setEntityAreaOverrides(s.entityAreaOverrides)
   if (s.customAreas) saveCustomAreas(s.customAreas)
   if (s.areaImages) saveAreaImages(s.areaImages)
+  if (s.widgets) saveWidgets(s.widgets)
 }
 
 /** Load settings from server for a given userId. Returns null on failure. */

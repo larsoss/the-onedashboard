@@ -1,6 +1,8 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import { Header } from './Header'
 import { TilesGrid } from './TilesGrid'
+import { WidgetGrid } from './WidgetGrid'
+import { WidgetPicker } from './WidgetPicker'
 import { Sidebar } from './Sidebar'
 import { SettingsPanel } from '@/components/settings/SettingsPanel'
 import { UserPicker } from './UserPicker'
@@ -195,11 +197,12 @@ function AddEntityModal({ areaId, areaName, onClose }: AddEntityModalProps) {
 interface EditToolbarProps {
   onDone: () => void
   onAddEntity?: () => void
+  onAddWidget?: () => void
   lastHiddenLabel?: string
   onUndoHide?: () => void
 }
 
-function EditToolbar({ onDone, onAddEntity, lastHiddenLabel, onUndoHide }: EditToolbarProps) {
+function EditToolbar({ onDone, onAddEntity, onAddWidget, lastHiddenLabel, onUndoHide }: EditToolbarProps) {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 flex items-center gap-2 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-ios-card/80 backdrop-blur-xl border-t border-white/10">
       {/* Undo hide — only when available */}
@@ -213,7 +216,7 @@ function EditToolbar({ onDone, onAddEntity, lastHiddenLabel, onUndoHide }: EditT
         </button>
       )}
 
-      {/* Add entity — only when in a room context */}
+      {/* Add entity — only in entity mode (no widgets yet) */}
       {onAddEntity && (
         <button
           onClick={onAddEntity}
@@ -221,6 +224,17 @@ function EditToolbar({ onDone, onAddEntity, lastHiddenLabel, onUndoHide }: EditT
         >
           <Plus className="w-3.5 h-3.5" />
           {t('add')}
+        </button>
+      )}
+
+      {/* Add widget — always shown in room context */}
+      {onAddWidget && (
+        <button
+          onClick={onAddWidget}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-ios-blue/20 text-ios-blue text-xs font-semibold"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          Widget
         </button>
       )}
 
@@ -661,7 +675,7 @@ export function Dashboard() {
   const {
     status, entities, resolveEntityArea, currentUserId, haUsers, selectUser,
     isEditMode, toggleEditMode, hiddenEntities, toggleHideEntity,
-    haAreas, customAreas, callService,
+    haAreas, customAreas, callService, widgets, setAreaWidgets,
   } = useHA()
 
   // Read URL query params once on mount
@@ -673,6 +687,7 @@ export function Dashboard() {
   const [showSettings, setShowSettings] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showWidgetPicker, setShowWidgetPicker] = useState(false)
 
   // Re-apply topbar hide via Browser Mod once connected
   useEffect(() => {
@@ -758,12 +773,24 @@ export function Dashboard() {
         />
         {activeTab === 'home'
           ? <HomeView onShowSettings={() => setShowSettings(true)} onTabChange={setActiveTab} />
-          : <TilesGrid
-              entities={filteredEntities}
-              contextId={activeTab}
-              className="pt-3"
-              onAddEntity={isEditMode && isRoomView ? () => setShowAddModal(true) : undefined}
-            />
+          : (() => {
+              const areaWidgets = widgets[activeTab] ?? []
+              const hasWidgets = areaWidgets.length > 0 || (isEditMode && isRoomView)
+              return hasWidgets
+                ? <WidgetGrid
+                    widgets={areaWidgets}
+                    contextId={activeTab}
+                    className="pt-3"
+                    onAddWidget={isEditMode && isRoomView ? () => setShowWidgetPicker(true) : undefined}
+                    onWidgetsChange={(next) => setAreaWidgets(activeTab, next)}
+                  />
+                : <TilesGrid
+                    entities={filteredEntities}
+                    contextId={activeTab}
+                    className="pt-3"
+                    onAddEntity={isEditMode && isRoomView ? () => setShowAddModal(true) : undefined}
+                  />
+            })()
         }
       </div>
 
@@ -771,18 +798,29 @@ export function Dashboard() {
       {isEditMode && (
         <EditToolbar
           onDone={toggleEditMode}
-          onAddEntity={isRoomView ? () => setShowAddModal(true) : undefined}
+          onAddEntity={isRoomView && (widgets[activeTab]?.length ?? 0) === 0
+            ? () => setShowAddModal(true)
+            : undefined}
+          onAddWidget={isRoomView ? () => setShowWidgetPicker(true) : undefined}
           lastHiddenLabel={lastHiddenLabel}
           onUndoHide={lastHiddenId ? handleUndoHide : undefined}
         />
       )}
 
-      {/* Add entity modal */}
+      {/* Add entity modal (entity mode — area has no widgets yet) */}
       {showAddModal && isRoomView && (
         <AddEntityModal
           areaId={activeTab}
           areaName={activeAreaName}
           onClose={() => setShowAddModal(false)}
+        />
+      )}
+
+      {/* Widget picker modal */}
+      {showWidgetPicker && isRoomView && (
+        <WidgetPicker
+          onAdd={(widget) => setAreaWidgets(activeTab, [...(widgets[activeTab] ?? []), widget])}
+          onClose={() => setShowWidgetPicker(false)}
         />
       )}
     </div>
