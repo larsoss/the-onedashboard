@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.19] - 2026-04-27
+
+- feat: redesign calendar tile + add calendar section to sidebar
+
 ## [2.0.18] - 2026-04-18
 
 - fix: use Browser Mod javascript service to hide HA topbar
