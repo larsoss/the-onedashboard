@@ -66,7 +66,14 @@ export function MediaPlayerTile({ entityId }: MediaPlayerTileProps) {
   const volume = typeof attrs.volume_level === 'number' ? attrs.volume_level : 1
   const shuffle = attrs.shuffle ?? false
   const repeat = attrs.repeat ?? 'off'    // 'off' | 'one' | 'all'
-  const artUrl = attrs.entity_picture ? `/ha-api${attrs.entity_picture}` : null
+  // entity_picture is either an external URL or an internal HA path like /api/...
+  // The server proxy strips /ha-api and routes to http://supervisor/core/api/*
+  // so we must strip the /api prefix from internal paths before prepending /ha-api.
+  const artUrl = attrs.entity_picture
+    ? attrs.entity_picture.startsWith('http')
+      ? attrs.entity_picture
+      : `/ha-api${attrs.entity_picture.replace(/^\/api/, '')}`
+    : null
   const currentSec = progress * duration
   const remaining = duration - currentSec
 
