@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.23] - 2026-04-28
+
+- feat: fix notifications + add inline label editing for all tiles
+
 ## [2.0.22] - 2026-04-28
 
 - fix: media player album art broken — entity_picture already contains /api prefix
