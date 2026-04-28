@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.21] - 2026-04-28
+
+- feat: widgets on home screen + prominent Add Widget button
+
 ## [2.0.20] - 2026-04-27
 
 - feat: widget system — explicit per-area widgets with Add Widget picker
