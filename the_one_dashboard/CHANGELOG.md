@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.24] - 2026-04-28
+
+- feat: touch-friendly widget drag reorder + empty label fix
+
 ## [2.0.23] - 2026-04-28
 
 - feat: fix notifications + add inline label editing for all tiles
