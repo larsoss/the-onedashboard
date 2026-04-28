@@ -164,7 +164,7 @@ function EditOverlay({ entityId, tileRef, currentSpan, onPreviewChange }: EditOv
   }, [editingLabel])
 
   const commitLabel = () => {
-    saveEntityLabel(entityId, labelInput.trim() || null)
+    saveEntityLabel(entityId, labelInput.trim())
     setEditingLabel(false)
   }
 

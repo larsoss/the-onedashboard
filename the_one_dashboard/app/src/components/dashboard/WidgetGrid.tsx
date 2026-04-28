@@ -74,11 +74,12 @@ interface WidgetEditOverlayProps {
   onDelete: () => void
   onPreviewChange: (span: TileSpan | null) => void
   onSpanCommit: (span: TileSpan) => void
-  onTitleChange: (title: string | undefined) => void
+  onTitleChange: (title: string) => void
+  onGripPointerDown: (e: React.PointerEvent) => void
 }
 
 function WidgetEditOverlay({
-  widget, tileRef, currentSpan, onDelete, onPreviewChange, onSpanCommit, onTitleChange,
+  widget, tileRef, currentSpan, onDelete, onPreviewChange, onSpanCommit, onTitleChange, onGripPointerDown,
 }: WidgetEditOverlayProps) {
   const dragStart = useRef<{ x: number; y: number; span: TileSpan; cellW: number; cellH: number } | null>(null)
   const [editingLabel, setEditingLabel] = useState(false)
@@ -115,7 +116,7 @@ function WidgetEditOverlay({
   }, [editingLabel])
 
   const commitLabel = () => {
-    onTitleChange(labelInput.trim() || undefined)
+    onTitleChange(labelInput.trim())
     setEditingLabel(false)
   }
 
@@ -129,7 +130,10 @@ function WidgetEditOverlay({
       {/* Top bar: drag handle */}
       <div className="flex items-center justify-between px-2 pt-1.5 shrink-0">
         <div className="w-5" />
-        <div className="pointer-events-auto cursor-grab active:cursor-grabbing">
+        <div
+          className="pointer-events-auto cursor-grab active:cursor-grabbing touch-none select-none"
+          onPointerDown={onGripPointerDown}
+        >
           <GripVertical className="w-4 h-4 text-white/40" />
         </div>
         <div className="w-5 flex justify-end">
@@ -204,22 +208,18 @@ function WidgetEditOverlay({
 
 interface WidgetTileWrapperProps {
   widget: WidgetInstance
-  contextId: string
   isEditMode: boolean
   isDragging: boolean
   isDragOver: boolean
-  onDragStart: () => void
-  onDragOver: (e: React.DragEvent) => void
-  onDrop: () => void
-  onDragEnd: () => void
   onDelete: () => void
   onSpanChange: (span: TileSpan) => void
-  onTitleChange: (title: string | undefined) => void
+  onTitleChange: (title: string) => void
+  onGripPointerDown: (e: React.PointerEvent) => void
 }
 
 function WidgetTileWrapper({
-  widget, contextId, isEditMode, isDragging, isDragOver,
-  onDragStart, onDragOver, onDrop, onDragEnd, onDelete, onSpanChange, onTitleChange,
+  widget, isEditMode, isDragging, isDragOver,
+  onDelete, onSpanChange, onTitleChange, onGripPointerDown,
 }: WidgetTileWrapperProps) {
   const tileRef = useRef<HTMLDivElement>(null!)
   const [previewSpan, setPreviewSpan] = useState<TileSpan | null>(null)
@@ -229,11 +229,7 @@ function WidgetTileWrapper({
   return (
     <div
       ref={tileRef}
-      draggable={isEditMode && !!contextId}
-      onDragStart={onDragStart}
-      onDragOver={onDragOver}
-      onDrop={onDrop}
-      onDragEnd={onDragEnd}
+      data-widget-id={widget.id}
       className={cn(
         'relative',
         previewSpan ? 'transition-none' : 'transition-all duration-150',
@@ -254,6 +250,7 @@ function WidgetTileWrapper({
           onPreviewChange={setPreviewSpan}
           onSpanCommit={onSpanChange}
           onTitleChange={onTitleChange}
+          onGripPointerDown={onGripPointerDown}
         />
       )}
     </div>
@@ -270,23 +267,52 @@ interface WidgetGridProps {
   onWidgetsChange: (widgets: WidgetInstance[]) => void
 }
 
-export function WidgetGrid({ widgets, contextId, className, onAddWidget, onWidgetsChange }: WidgetGridProps) {
+export function WidgetGrid({ widgets, contextId: _contextId, className, onAddWidget, onWidgetsChange }: WidgetGridProps) {
   const { theme, isEditMode } = useHA()
   const [dragId, setDragId] = useState<string | null>(null)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
+  const widgetsRef = useRef(widgets)
+  widgetsRef.current = widgets
+  const onWidgetsChangeRef = useRef(onWidgetsChange)
+  onWidgetsChangeRef.current = onWidgetsChange
 
-  const handleDrop = (targetId: string) => {
-    if (!dragId || dragId === targetId) return
-    const from = widgets.findIndex((w) => w.id === dragId)
-    const to = widgets.findIndex((w) => w.id === targetId)
-    if (from === -1 || to === -1) return
-    const next = [...widgets]
-    next.splice(from, 1)
-    next.splice(to, 0, widgets[from])
-    onWidgetsChange(next)
-    setDragId(null)
-    setDragOverId(null)
-  }
+  // Pointer-based drag — works on both desktop and mobile touch
+  useEffect(() => {
+    if (!dragId) return
+
+    const onMove = (e: PointerEvent) => {
+      const el = document.elementFromPoint(e.clientX, e.clientY)
+      const closest = (el as HTMLElement | null)?.closest('[data-widget-id]')
+      const targetId = closest?.getAttribute('data-widget-id') ?? null
+      setDragOverId(targetId && targetId !== dragId ? targetId : null)
+    }
+
+    const onUp = (e: PointerEvent) => {
+      const el = document.elementFromPoint(e.clientX, e.clientY)
+      const closest = (el as HTMLElement | null)?.closest('[data-widget-id]')
+      const targetId = closest?.getAttribute('data-widget-id') ?? null
+      if (targetId && targetId !== dragId) {
+        const ws = widgetsRef.current
+        const from = ws.findIndex((w) => w.id === dragId)
+        const to = ws.findIndex((w) => w.id === targetId)
+        if (from !== -1 && to !== -1) {
+          const next = [...ws]
+          next.splice(from, 1)
+          next.splice(to, 0, ws[from])
+          onWidgetsChangeRef.current(next)
+        }
+      }
+      setDragId(null)
+      setDragOverId(null)
+    }
+
+    document.addEventListener('pointermove', onMove)
+    document.addEventListener('pointerup', onUp)
+    return () => {
+      document.removeEventListener('pointermove', onMove)
+      document.removeEventListener('pointerup', onUp)
+    }
+  }, [dragId])
 
   const handleDelete = (widgetId: string) => {
     onWidgetsChange(widgets.filter((w) => w.id !== widgetId))
@@ -296,7 +322,8 @@ export function WidgetGrid({ widgets, contextId, className, onAddWidget, onWidge
     onWidgetsChange(widgets.map((w) => w.id === widgetId ? { ...w, span } : w))
   }
 
-  const handleTitleChange = (widgetId: string, title: string | undefined) => {
+  const handleTitleChange = (widgetId: string, title: string) => {
+    // Store "" to mean "explicitly blank"; undefined means "not yet set" (show default)
     onWidgetsChange(widgets.map((w) => w.id === widgetId ? { ...w, title } : w))
   }
 
@@ -313,17 +340,14 @@ export function WidgetGrid({ widgets, contextId, className, onAddWidget, onWidge
         <WidgetTileWrapper
           key={widget.id}
           widget={widget}
-          contextId={contextId}
+
           isEditMode={isEditMode}
           isDragging={dragId === widget.id}
           isDragOver={dragOverId === widget.id && dragId !== widget.id}
-          onDragStart={() => setDragId(widget.id)}
-          onDragOver={(e) => { e.preventDefault(); if (dragId) setDragOverId(widget.id) }}
-          onDrop={() => handleDrop(widget.id)}
-          onDragEnd={() => { setDragId(null); setDragOverId(null) }}
           onDelete={() => handleDelete(widget.id)}
           onSpanChange={(span) => handleSpanChange(widget.id, span)}
           onTitleChange={(title) => handleTitleChange(widget.id, title)}
+          onGripPointerDown={(e) => { e.preventDefault(); setDragId(widget.id) }}
         />
       ))}
 
