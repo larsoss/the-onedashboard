@@ -8,6 +8,7 @@ import type {
   HassDeviceRegistryEntry,
   ConnectionStatus,
   HAUser,
+  PersistentNotification,
 } from '@/types/ha-types'
 
 type StateChangeHandler = (entityId: string, newState: HassEntity | null) => void
@@ -99,6 +100,10 @@ export class HAClient {
 
   getUsers(): Promise<HAUser[]> {
     return this.callWS<HAUser[]>({ type: 'config/auth/list', id: 0 })
+  }
+
+  getPersistentNotifications(): Promise<PersistentNotification[]> {
+    return this.callWS<PersistentNotification[]>({ type: 'persistent_notification/get', id: 0 })
   }
 
   onStateChange(handler: StateChangeHandler): () => void {

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import type { HassEntity } from '@/types/ha-types'
 import { getDomain, entityLabel } from '@/lib/utils'
 import { LightTile } from '@/components/tiles/LightTile'
@@ -20,7 +20,7 @@ import { useHA } from '@/hooks/useHAClient'
 import { GRID_COLS, TILE_ROW_H } from '@/lib/theme-storage'
 import { SPAN_CLASSES, spanToUnits, unitsToSpan, type TileSpan } from '@/lib/tile-sizes'
 import { ICON_OPTIONS } from '@/lib/icons'
-import { Activity, EyeOff, X, Heart, GripVertical, GripHorizontal, Plus } from 'lucide-react'
+import { Activity, EyeOff, X, Heart, GripVertical, GripHorizontal, Plus, Pencil, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { t } from '@/lib/i18n'
 
@@ -151,10 +151,22 @@ interface EditOverlayProps {
 }
 
 function EditOverlay({ entityId, tileRef, currentSpan, onPreviewChange }: EditOverlayProps) {
-  const { entityTileSizes, setEntityTileSize, toggleHideEntity, toggleFavorite, favorites, entities, entityLabels } = useHA()
+  const { entityTileSizes, setEntityTileSize, toggleHideEntity, toggleFavorite, favorites, entities, entityLabels, saveEntityLabel } = useHA()
   const [showIconPicker, setShowIconPicker] = useState(false)
+  const [editingLabel, setEditingLabel] = useState(false)
+  const [labelInput, setLabelInput] = useState('')
+  const labelInputRef = useRef<HTMLInputElement>(null)
   const current = entityTileSizes[entityId] ?? '1x1'
   const isFavorited = favorites.includes(entityId)
+
+  useEffect(() => {
+    if (editingLabel) labelInputRef.current?.focus()
+  }, [editingLabel])
+
+  const commitLabel = () => {
+    saveEntityLabel(entityId, labelInput.trim() || null)
+    setEditingLabel(false)
+  }
 
   // Resize handle state
   const dragStart = useRef<{ x: number; y: number; span: TileSpan; cellW: number; cellH: number } | null>(null)
@@ -218,11 +230,36 @@ function EditOverlay({ entityId, tileRef, currentSpan, onPreviewChange }: EditOv
           </div>
         </div>
 
-        {/* Entity name — centered in remaining space */}
-        <div className="flex-1 flex items-center justify-center px-2 min-h-0">
-          <p className="text-[11px] font-semibold text-white text-center leading-snug line-clamp-2">
-            {label}
-          </p>
+        {/* Entity name — centered, clickable to rename */}
+        <div className="flex-1 flex items-center justify-center px-2 min-h-0 pointer-events-auto">
+          {editingLabel ? (
+            <div className="flex items-center gap-1 w-full">
+              <input
+                ref={labelInputRef}
+                value={labelInput}
+                onChange={(e) => setLabelInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') commitLabel()
+                  if (e.key === 'Escape') setEditingLabel(false)
+                }}
+                placeholder={label}
+                className="flex-1 min-w-0 text-[11px] text-white bg-white/20 rounded-lg px-2 py-1 outline-none border border-ios-blue/60 placeholder:text-white/40"
+              />
+              <button onClick={commitLabel} className="shrink-0 text-ios-blue">
+                <Check className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => { setLabelInput(entityLabels[entityId] ?? ''); setEditingLabel(true) }}
+              className="flex items-center gap-1 max-w-full"
+            >
+              <p className="text-[11px] font-semibold text-white text-center leading-snug line-clamp-2">
+                {label}
+              </p>
+              <Pencil className="w-2.5 h-2.5 text-white/50 shrink-0" />
+            </button>
+          )}
         </div>
 
         {/* Bottom bar: action buttons (left) + resize handle (right) */}

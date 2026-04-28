@@ -65,6 +65,7 @@ import type {
   HassDeviceRegistryEntry,
   ConnectionStatus,
   HAUser,
+  PersistentNotification,
 } from '@/types/ha-types'
 import type { CustomArea, EntityAreaOverrides } from '@/lib/area-storage'
 import { getStoredUserId, storeUserId } from '@/components/dashboard/UserPicker'
@@ -130,6 +131,9 @@ interface HAContextValue {
   // Widget instances per area
   widgets: WidgetMap
   setAreaWidgets: (areaId: string, widgets: WidgetInstance[]) => void
+  // Persistent notifications (fetched via WS, not entity state)
+  haNotifications: PersistentNotification[]
+  dismissHaNotification: (notificationId: string) => void
 }
 
 const HAContext = createContext<HAContextValue>({
@@ -172,6 +176,8 @@ const HAContext = createContext<HAContextValue>({
   settingsVersion: 0,
   widgets: {},
   setAreaWidgets: () => undefined,
+  haNotifications: [],
+  dismissHaNotification: () => undefined,
 })
 
 export function HAProvider({ children }: { children: React.ReactNode }) {
@@ -199,6 +205,7 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
   const [areaImages, setAreaImages] = useState<AreaImages>(getAreaImages)
   const [settingsVersion, setSettingsVersion] = useState(0)
   const [widgets, setWidgetsState] = useState<WidgetMap>(getWidgets)
+  const [haNotifications, setHaNotifications] = useState<PersistentNotification[]>([])
   const clientRef = useRef<HAClient | null>(null)
 
   // Apply background CSS variable whenever bgStyle changes
@@ -257,6 +264,10 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
         client.getUsers()
           .then(setHaUsers)
           .catch(console.error)
+
+        client.getPersistentNotifications()
+          .then(setHaNotifications)
+          .catch(() => undefined)
       }
     })
 
@@ -269,6 +280,12 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
         }
         return { ...prev, [entityId]: newState }
       })
+      // Re-fetch persistent notifications when any PN entity changes
+      if (entityId.startsWith('persistent_notification.')) {
+        client.getPersistentNotifications()
+          .then(setHaNotifications)
+          .catch(() => undefined)
+      }
     })
 
     client.connect()
@@ -376,6 +393,11 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
       return next
     })
   }, [])
+
+  const dismissHaNotification = useCallback((notificationId: string) => {
+    setHaNotifications((prev) => prev.filter((n) => n.notification_id !== notificationId))
+    callService('persistent_notification', 'dismiss', { notification_id: notificationId })
+  }, [callService])
 
   const setAreaWidgets = useCallback((areaId: string, widgetList: WidgetInstance[]) => {
     setWidgetsState((prev) => {
@@ -522,6 +544,8 @@ export function HAProvider({ children }: { children: React.ReactNode }) {
         settingsVersion,
         widgets,
         setAreaWidgets,
+        haNotifications,
+        dismissHaNotification,
       }}
     >
       {children}

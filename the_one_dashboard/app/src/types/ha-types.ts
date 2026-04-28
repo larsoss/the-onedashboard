@@ -200,3 +200,11 @@ export interface HAUser {
   is_active: boolean
   system_generated?: boolean
 }
+
+export interface PersistentNotification {
+  notification_id: string
+  message: string
+  title?: string
+  created_at: string
+  status: 'unread' | 'read'
+}

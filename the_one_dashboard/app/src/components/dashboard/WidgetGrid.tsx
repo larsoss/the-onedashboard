@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback } from 'react'
-import { GripVertical, GripHorizontal, Trash2, Plus } from 'lucide-react'
+import { useState, useRef, useCallback, useEffect } from 'react'
+import { GripVertical, GripHorizontal, Trash2, Plus, Pencil, Check } from 'lucide-react'
 import { LightTile } from '@/components/tiles/LightTile'
 import { LightGroupTile } from '@/components/tiles/LightGroupTile'
 import { SwitchTile } from '@/components/tiles/SwitchTile'
@@ -74,12 +74,16 @@ interface WidgetEditOverlayProps {
   onDelete: () => void
   onPreviewChange: (span: TileSpan | null) => void
   onSpanCommit: (span: TileSpan) => void
+  onTitleChange: (title: string | undefined) => void
 }
 
 function WidgetEditOverlay({
-  widget, tileRef, currentSpan, onDelete, onPreviewChange, onSpanCommit,
+  widget, tileRef, currentSpan, onDelete, onPreviewChange, onSpanCommit, onTitleChange,
 }: WidgetEditOverlayProps) {
   const dragStart = useRef<{ x: number; y: number; span: TileSpan; cellW: number; cellH: number } | null>(null)
+  const [editingLabel, setEditingLabel] = useState(false)
+  const [labelInput, setLabelInput] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const onResizePointerDown = useCallback((e: React.PointerEvent) => {
     e.stopPropagation()
@@ -106,9 +110,17 @@ function WidgetEditOverlay({
     onPreviewChange(null)
   }, [onPreviewChange, onSpanCommit])
 
+  useEffect(() => {
+    if (editingLabel) inputRef.current?.focus()
+  }, [editingLabel])
+
+  const commitLabel = () => {
+    onTitleChange(labelInput.trim() || undefined)
+    setEditingLabel(false)
+  }
+
   const isResizing = currentSpan !== widget.span
 
-  // Derive a display name: title → first entityId label → type
   const displayName = widget.title
     ?? (widget.entityIds[0] ? widget.entityIds[0].split('.')[1]?.replace(/_/g, ' ') ?? widget.type : widget.type)
 
@@ -129,11 +141,36 @@ function WidgetEditOverlay({
         </div>
       </div>
 
-      {/* Center: widget name */}
-      <div className="flex-1 flex items-center justify-center px-2 min-h-0">
-        <p className="text-[11px] font-semibold text-white text-center leading-snug line-clamp-2 capitalize">
-          {displayName}
-        </p>
+      {/* Center: editable label */}
+      <div className="flex-1 flex items-center justify-center px-2 min-h-0 pointer-events-auto">
+        {editingLabel ? (
+          <div className="flex items-center gap-1 w-full">
+            <input
+              ref={inputRef}
+              value={labelInput}
+              onChange={(e) => setLabelInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') commitLabel()
+                if (e.key === 'Escape') setEditingLabel(false)
+              }}
+              placeholder={displayName}
+              className="flex-1 min-w-0 text-[11px] text-white bg-white/20 rounded-lg px-2 py-1 outline-none border border-ios-blue/60 placeholder:text-white/40"
+            />
+            <button onClick={commitLabel} className="shrink-0 text-ios-blue">
+              <Check className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => { setLabelInput(widget.title ?? ''); setEditingLabel(true) }}
+            className="flex items-center gap-1 max-w-full"
+          >
+            <p className="text-[11px] font-semibold text-white text-center leading-snug line-clamp-2 capitalize">
+              {displayName}
+            </p>
+            <Pencil className="w-2.5 h-2.5 text-white/50 shrink-0" />
+          </button>
+        )}
       </div>
 
       {/* Bottom bar: delete + resize */}
@@ -177,11 +214,12 @@ interface WidgetTileWrapperProps {
   onDragEnd: () => void
   onDelete: () => void
   onSpanChange: (span: TileSpan) => void
+  onTitleChange: (title: string | undefined) => void
 }
 
 function WidgetTileWrapper({
   widget, contextId, isEditMode, isDragging, isDragOver,
-  onDragStart, onDragOver, onDrop, onDragEnd, onDelete, onSpanChange,
+  onDragStart, onDragOver, onDrop, onDragEnd, onDelete, onSpanChange, onTitleChange,
 }: WidgetTileWrapperProps) {
   const tileRef = useRef<HTMLDivElement>(null!)
   const [previewSpan, setPreviewSpan] = useState<TileSpan | null>(null)
@@ -215,6 +253,7 @@ function WidgetTileWrapper({
           onDelete={onDelete}
           onPreviewChange={setPreviewSpan}
           onSpanCommit={onSpanChange}
+          onTitleChange={onTitleChange}
         />
       )}
     </div>
@@ -257,6 +296,10 @@ export function WidgetGrid({ widgets, contextId, className, onAddWidget, onWidge
     onWidgetsChange(widgets.map((w) => w.id === widgetId ? { ...w, span } : w))
   }
 
+  const handleTitleChange = (widgetId: string, title: string | undefined) => {
+    onWidgetsChange(widgets.map((w) => w.id === widgetId ? { ...w, title } : w))
+  }
+
   const showAddTile = isEditMode && !!onAddWidget
 
   if (widgets.length === 0 && !showAddTile) return null
@@ -280,6 +323,7 @@ export function WidgetGrid({ widgets, contextId, className, onAddWidget, onWidge
           onDragEnd={() => { setDragId(null); setDragOverId(null) }}
           onDelete={() => handleDelete(widget.id)}
           onSpanChange={(span) => handleSpanChange(widget.id, span)}
+          onTitleChange={(title) => handleTitleChange(widget.id, title)}
         />
       ))}
 

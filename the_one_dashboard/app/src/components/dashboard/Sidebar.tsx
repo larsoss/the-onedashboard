@@ -4,7 +4,7 @@ import {
   Bell, BellOff, Cloud, CalendarDays, Clock, MapPin,
 } from 'lucide-react'
 import { useHA } from '@/hooks/useHAClient'
-import { getDomain, entityLabel } from '@/lib/utils'
+import { getDomain } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import type { WeatherAttributes, CalendarEvent } from '@/types/ha-types'
 import { fetchCalendarEvents } from '@/lib/ha-api'
@@ -46,7 +46,7 @@ interface SidebarProps {
 const CAL_COLORS = ['#0A84FF', '#30D158', '#FF9F0A', '#BF5AF2', '#FF453A', '#5AC8FA']
 
 export function Sidebar({ open, onClose, onNavigate }: SidebarProps) {
-  const { entities, haUsers, currentUserId, callService } = useHA()
+  const { entities, haUsers, currentUserId, haNotifications, dismissHaNotification } = useHA()
   const time = useClock()
 
   // Calendar events — fetch from all calendar entities
@@ -112,16 +112,7 @@ export function Sidebar({ open, onClose, onNavigate }: SidebarProps) {
   )
   const weatherAttrs = weatherEntity?.attributes as WeatherAttributes | undefined
 
-  // Persistent notifications
-  const notifications = useMemo(
-    () => entityList.filter((e) => getDomain(e.entity_id) === 'persistent_notification' && e.state !== 'dismissed'),
-    [entityList]
-  )
-
-  const dismissNotification = (entityId: string) => {
-    const notifId = entityId.replace('persistent_notification.', '')
-    callService('persistent_notification', 'dismiss', { notification_id: notifId })
-  }
+  const notifications = haNotifications
 
   return (
     <>
@@ -266,27 +257,23 @@ export function Sidebar({ open, onClose, onNavigate }: SidebarProps) {
               <p className="text-xs font-semibold text-ios-secondary uppercase tracking-wider">
                 {t('notifications_n', { n: notifications.length })}
               </p>
-              {notifications.map((n) => {
-                const title = typeof n.attributes.title === 'string' ? n.attributes.title : entityLabel(n.entity_id)
-                const message = typeof n.attributes.message === 'string' ? n.attributes.message : n.state
-                return (
-                  <div key={n.entity_id} className="bg-ios-card-2 rounded-2xl p-3 relative">
-                    <button
-                      onClick={() => dismissNotification(n.entity_id)}
-                      className="absolute top-2.5 right-2.5 text-ios-secondary hover:text-ios-label"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                    <div className="flex items-start gap-2 pr-5">
-                      <Bell className="w-3.5 h-3.5 text-ios-amber mt-0.5 shrink-0" />
-                      <div>
-                        <p className="text-xs font-semibold text-ios-label">{title}</p>
-                        <p className="text-xs text-ios-secondary mt-0.5 line-clamp-3">{message}</p>
-                      </div>
+              {notifications.map((n) => (
+                <div key={n.notification_id} className="bg-ios-card-2 rounded-2xl p-3 relative">
+                  <button
+                    onClick={() => dismissHaNotification(n.notification_id)}
+                    className="absolute top-2.5 right-2.5 text-ios-secondary hover:text-ios-label"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                  <div className="flex items-start gap-2 pr-5">
+                    <Bell className="w-3.5 h-3.5 text-ios-amber mt-0.5 shrink-0" />
+                    <div>
+                      {n.title && <p className="text-xs font-semibold text-ios-label">{n.title}</p>}
+                      <p className="text-xs text-ios-secondary mt-0.5 line-clamp-3">{n.message}</p>
                     </div>
                   </div>
-                )
-              })}
+                </div>
+              ))}
             </div>
           )}
 
