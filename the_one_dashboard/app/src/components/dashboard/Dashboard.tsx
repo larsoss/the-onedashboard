@@ -227,14 +227,14 @@ function EditToolbar({ onDone, onAddEntity, onAddWidget, lastHiddenLabel, onUndo
         </button>
       )}
 
-      {/* Add widget — always shown in room context */}
+      {/* Add widget — always shown */}
       {onAddWidget && (
         <button
           onClick={onAddWidget}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-ios-blue/20 text-ios-blue text-xs font-semibold"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-ios-blue text-white text-sm font-bold shadow-lg shadow-ios-blue/30"
         >
-          <Plus className="w-3.5 h-3.5" />
-          Widget
+          <Plus className="w-4 h-4" />
+          Add Widget
         </button>
       )}
 
@@ -523,10 +523,11 @@ function AreaCard({
 interface HomeViewProps {
   onShowSettings: () => void
   onTabChange: (tabId: string) => void
+  onAddWidget: () => void
 }
 
-function HomeView({ onShowSettings, onTabChange }: HomeViewProps) {
-  const { haAreas, customAreas, entities, resolveEntityArea, favorites, areaOrder, saveAreaOrder, theme } = useHA()
+function HomeView({ onShowSettings, onTabChange, onAddWidget }: HomeViewProps) {
+  const { haAreas, customAreas, entities, resolveEntityArea, favorites, areaOrder, saveAreaOrder, theme, widgets, setAreaWidgets, isEditMode } = useHA()
   const [dragAreaId, setDragAreaId] = useState<string | null>(null)
   const [dragOverAreaId, setDragOverAreaId] = useState<string | null>(null)
   const dragCounter = useRef(0)
@@ -580,7 +581,9 @@ function HomeView({ onShowSettings, onTabChange }: HomeViewProps) {
     setDragOverAreaId(null)
   }
 
-  if (areasWithEntities.length === 0 && favoriteEntities.length === 0 && personEntities.length === 0) {
+  const homeWidgets = widgets['home'] ?? []
+
+  if (areasWithEntities.length === 0 && favoriteEntities.length === 0 && personEntities.length === 0 && homeWidgets.length === 0) {
     return (
       <div>
         <EmptyState />
@@ -598,6 +601,17 @@ function HomeView({ onShowSettings, onTabChange }: HomeViewProps) {
 
   return (
     <div className="pb-8">
+      {/* Home widgets (shown first when configured, or placeholder in edit mode) */}
+      {(homeWidgets.length > 0 || isEditMode) && (
+        <WidgetGrid
+          widgets={homeWidgets}
+          contextId="home"
+          className="pt-4"
+          onAddWidget={isEditMode ? onAddWidget : undefined}
+          onWidgetsChange={(next) => setAreaWidgets('home', next)}
+        />
+      )}
+
       {/* Favorites */}
       {favoriteEntities.length > 0 && (
         <div>
@@ -688,6 +702,12 @@ export function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
   const [showWidgetPicker, setShowWidgetPicker] = useState(false)
+  const [widgetPickerContext, setWidgetPickerContext] = useState<string>('home')
+
+  const openWidgetPicker = (context: string) => {
+    setWidgetPickerContext(context)
+    setShowWidgetPicker(true)
+  }
 
   // Re-apply topbar hide via Browser Mod once connected
   useEffect(() => {
@@ -772,7 +792,11 @@ export function Dashboard() {
           currentRoom={activeTab !== 'home' ? activeAreaName : undefined}
         />
         {activeTab === 'home'
-          ? <HomeView onShowSettings={() => setShowSettings(true)} onTabChange={setActiveTab} />
+          ? <HomeView
+              onShowSettings={() => setShowSettings(true)}
+              onTabChange={setActiveTab}
+              onAddWidget={() => openWidgetPicker('home')}
+            />
           : (() => {
               const areaWidgets = widgets[activeTab] ?? []
               const hasWidgets = areaWidgets.length > 0 || (isEditMode && isRoomView)
@@ -781,7 +805,7 @@ export function Dashboard() {
                     widgets={areaWidgets}
                     contextId={activeTab}
                     className="pt-3"
-                    onAddWidget={isEditMode && isRoomView ? () => setShowWidgetPicker(true) : undefined}
+                    onAddWidget={isEditMode && isRoomView ? () => openWidgetPicker(activeTab) : undefined}
                     onWidgetsChange={(next) => setAreaWidgets(activeTab, next)}
                   />
                 : <TilesGrid
@@ -801,7 +825,7 @@ export function Dashboard() {
           onAddEntity={isRoomView && (widgets[activeTab]?.length ?? 0) === 0
             ? () => setShowAddModal(true)
             : undefined}
-          onAddWidget={isRoomView ? () => setShowWidgetPicker(true) : undefined}
+          onAddWidget={() => openWidgetPicker(isRoomView ? activeTab : 'home')}
           lastHiddenLabel={lastHiddenLabel}
           onUndoHide={lastHiddenId ? handleUndoHide : undefined}
         />
@@ -817,9 +841,9 @@ export function Dashboard() {
       )}
 
       {/* Widget picker modal */}
-      {showWidgetPicker && isRoomView && (
+      {showWidgetPicker && (
         <WidgetPicker
-          onAdd={(widget) => setAreaWidgets(activeTab, [...(widgets[activeTab] ?? []), widget])}
+          onAdd={(widget) => setAreaWidgets(widgetPickerContext, [...(widgets[widgetPickerContext] ?? []), widget])}
           onClose={() => setShowWidgetPicker(false)}
         />
       )}
