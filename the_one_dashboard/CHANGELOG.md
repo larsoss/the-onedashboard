@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.22] - 2026-04-28
+
+- fix: media player album art broken — entity_picture already contains /api prefix
+
 ## [2.0.21] - 2026-04-28
 
 - feat: widgets on home screen + prominent Add Widget button
